@@ -1,0 +1,140 @@
+# =======================================================================
+# A very simple mini build system which can be improved upon.
+# (not bad that it is simple though!)
+# See comments in this file what should be improved on.
+# =======================================================================
+
+# Targets
+.SUFFIXES:
+.SUFFIXES: .so .o
+
+.PHONY: all bin lib obj clean
+.SILENT: all bin lib obj clean
+
+# =======================================================================
+# NOTE!
+# Here we should setup options based on a flag set in the Makefile so
+# we automatically add options when user sets a flag.
+# For example, if useOracle is set, then we should add
+# -I, -L and -l options needed to link/compile against Oracle OCCI.
+# Right now it's patched together so we always use all options.
+# =======================================================================
+
+# Add some default so users don't have to add them to LOCAL_XXX vars.
+LOCAL_LIBS      += -lrt
+LOCAL_LIBPATH   += -L$(BOOST_LIB)
+LOCAL_INCPATH   += -I. -I$(BOOST_INC)
+LOCAL_DEFINES   += -D__USE_XOPEN2K8 -D__USE_XOPEN2KXSI
+LOCAL_CXXFLAGS  +=
+LOCAL_CPPFLAGS  +=
+LOCAL_LDFLAGS   +=
+LOCAL_LDSOFLAGS +=
+LOCAL_CLEAN     +=
+
+# Setup compile/link environment - these are the variables used in the final build.
+LIBS=$(LOCAL_LIBS)
+LIBPATH=$(LOCAL_LIBPATH)
+INCPATH=$(LOCAL_INCPATH)
+
+DEFINES=$(LOCAL_DEFINES)
+CXXFLAGS=$(LOCAL_CXXFLAGS) ${GCC_USE_GLIBCXX11_ABI}
+CCFLAGS=$(GCC_OPT) -c -m64 -fPIC -pedantic -Werror $(GCC_ERROR_IGNORE) -std=$(GCC_STDOPT) $(LOCAL_CPPFLAGS) $(GCCDEBUG)
+CFLAGS=-x c -c -m64 -fPIC -Wall -pedantic $(LOCAL_CPPFLAGS)
+LDFLAGS=-m64 $(LOCAL_LDFLAGS)
+LDSOFLAGS=-shared -fPIC -m64 $(LOCAL_LDSOFLAGS)
+
+# Flex/yacc specific stuff
+FLEX_FLAGS=$(LOCAL_FLEX_FLAGS)
+YACC_FLAGS=$(LOCAL_YACC_FLAGS)
+
+# Setup compiler/linker.
+CC=g++
+LD=g++
+LDSO=g++
+LEX=flex
+YACC=bison
+
+# Set objects to compile.
+OBJS=$(LOCAL_OBJS)
+
+# Targets.
+all: bin
+
+test: $(LOCAL_UTEST_TARGET)
+	@rm -f $(LOCAL_UTEST_CLEAN)
+	@for target in $(LOCAL_UTEST_TARGET); do \
+	  echo "### Running test $${target} in `pwd`"; \
+	  ./$${target};  \
+	done
+
+bin: lib $(LOCAL_TARGET)
+
+lib: obj $(LOCAL_SOTARGET)
+
+obj: $(OBJS)
+
+clean:
+	rm -f $(OBJS) $(LOCAL_SOTARGET) $(LOCAL_TARGET) $(LOCAL_UTEST_TARGET) $(LOCAL_UTEST_CLEAN) junk* $(LOCAL_CLEAN) $(CLEANLIST) $(LOCAL_AUX_DEP)
+
+# dependency management on header files
+# (we support dependency management from cc and c files)
+# (see: http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#nonc)
+DEPDIR = .d
+$(shell mkdir -p $(DEPDIR) >/dev/null)
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+POSTCOMPILE=mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
+
+# Compilation rules
+%.o: %.cc
+%.o: %.cc $(DEPDIR)/%.d
+	@echo "### Building $@"
+	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(CCFLAGS) $(INCPATH) $(DEFINES) -o $@ $<
+	$(POSTCOMPILE)
+
+%.o: %.cpp
+%.o: %.cpp $(DEPDIR)/%.d
+	@echo "### Building $@"
+	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(CCFLAGS) $(INCPATH) $(DEFINES) -o $@ $<
+	$(POSTCOMPILE)
+
+%.cc: %.yy
+	@echo "### Building $@"
+	bison -d -v -o $@ $<
+
+%.o: %.c
+%.o: %.c $(DEPDIR)/%.d
+	@echo "### Building $@"
+	$(CC) $(DEPFLAGS) $(CXXFLAGS) $(CFLAGS) $(INCPATH) $(DEFINES) -o $@ $<
+	$(POSTCOMPILE)
+
+%.cc: %.yy
+	@echo "### Building $@"
+	$(YACC) $(YACC_FLAGS) -o $@ $<
+
+%.cc: %.ll
+	@echo "### Building $@"
+	$(LEX) $(FLEX_FLAGS) -o $@ $<
+
+%.cc: %.lex
+	@echo "### Building $@"
+	$(LEX) $(FLEX_FLAGS) -o $@ $<
+
+$(OBJS): $(LOCAL_AUX_DEP)
+
+$(LOCAL_TARGET): $(OBJS)
+	@echo "### Building $@"
+	$(LD) -o $@ $(OBJS) $(CXXFLAGS) $(LDFLAGS) $(LIBPATH) $(LIBS)
+
+$(LOCAL_UTEST_TARGET): $(OBJS)
+	@echo "### Building $@"
+	$(LD) -o $@ $(OBJS) $(CXXFLAGS) $(LDFLAGS) $(LIBPATH) $(LIBS)
+
+$(LOCAL_SOTARGET): $(OBJS)
+	@echo "### Building $@"
+	$(LDSO) $(CXXFLAGS) $(LDSOFLAGS) -o $@ $(OBJS) $(LIBPATH) $(LIBS)
+
+# dependency management on header files
+$(DEPDIR)/%.d: ;
+.PRECIOUS: $(DEPDIR)/%.d
+-include $(patsubst %,$(DEPDIR)/%.d,$(basename $(LOCAL_OBJS)))
+

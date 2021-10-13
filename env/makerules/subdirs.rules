@@ -1,0 +1,18 @@
+SUBDIRS:=$(SUBDIRS:./%=%)
+
+.PHONY: all clean $(SUBDIRS)
+.SILENT: all clean $(SUBDIRS)
+
+#.NOTPARALLEL:
+
+all: $(SUBDIRS)
+
+clean:
+	$(MAKE) TARGET=clean $(SUBDIRS)
+
+test:
+	$(MAKE) TARGET=test $(SUBDIRS)
+
+$(SUBDIRS): 
+	@echo ">>>>>>>" BUILDING DIRECTORY: $@
+	$(MAKE) --directory=$@ $(TARGET)
