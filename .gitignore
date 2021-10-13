@@ -1,0 +1,8 @@
+*.o
+*.so
+.d
+artefacts/setenv.sh
+artefacts/bin/*
+artefactslibin/*
+src/cpp/experiments/test1/test1
+src/cpp/experiments/test2/test1

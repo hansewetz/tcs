@@ -1,11 +1,11 @@
 # To be built
-LOCAL_TARGET    =  test1
-LOCAL_SOTARGET  = 
-LOCAL_OBJS      = test1.o
+LOCAL_TARGET    = 
+LOCAL_SOTARGET  = $(TCS_LIBDIR)/libutils.so
+LOCAL_OBJS      = strutils.o
 
 # Control.
 LOCAL_LIBS      = 
-LOCAL_LIBPATH   = -L$(TCS_LIBDIR)
+LOCAL_LIBPATH   = 
 LOCAL_INCPATH   = 
 LOCAL_DEFINES   = 
 LOCAL_CXXFLAGS  =

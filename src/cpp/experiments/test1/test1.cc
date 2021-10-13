@@ -10,7 +10,7 @@
 #include <cxxabi.h>
 using namespace std;
 
-// (=== typeutils.h)
+// (=== utils.h)
 // --- check if a number of types are all streamable
 template <typename ...Ts>
 concept Streamable=requires(std::ostream& os,Ts ... ts){
@@ -22,6 +22,21 @@ std::string type2string(T t){
   int status;
   return std::string("(")+abi::__cxa_demangle(typeid(T).name(),0,0,&status)+")";
 }
+// min/max functions with variable return type
+template<typename T1,typename T2>
+auto tmax(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
+  return t1>t2?t1:t2;
+}
+template<typename T1,typename T2>
+auto tmin(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
+  return t1<t2?t1:t2;
+}
+// operator<<(...) or pairs
+template<typename T1,typename T2>
+std::ostream&operator<<(std::ostream&os,std::pair<T1,T2>const&p)requires Streamable<T1,T2>{
+  return os<<"["<<p.first<<", "<<p.second<<"]";
+}
+
 
 
 // (=== strutils.h)
@@ -43,29 +58,18 @@ string strcat1(S const&s,T const&t,Ts const&...ts){
 }
 
 
-// (=== utils.h)
-// min/max functions
-template<typename T1,typename T2>
-auto tmax(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
-  return t1>t2?t1:t2;
-}
-template<typename T1,typename T2>
-auto tmin(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
-  return t1<t2?t1:t2;
-}
-// operator<<(...) or pairs
-template<typename T1,typename T2>
-std::ostream&operator<<(std::ostream&os,std::pair<T1,T2>const&p)requires Streamable<T1,T2>{
-  return os<<"["<<p.first<<", "<<p.second<<"]";
-}
-
 
 // (=== sysutils.h)
 // NOTE! not yet done
 
 
+
+
+
 // (=== dsutils.h)
-// NOTRE! data structure utilities
+// NOTE!! data structure utilities
+
+
 
 
 // --- function for converting a list of values to a container
