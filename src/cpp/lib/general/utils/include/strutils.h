@@ -9,7 +9,8 @@ template<Streamable S,template<class>class C,Streamable T>
 [[nodiscard]]std::string strcat(S const&sep,C<T>const&c){
   std::stringstream ret;
   for(auto it=begin(c);it!=end(c);++it){
-    ret<<*it<<(next(it)!=end(c)?sep:S{});
+    ret<<*it;
+    if(next(it)!=end(c))ret<<sep;
   }
   return ret.str();
 }

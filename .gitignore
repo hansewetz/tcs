@@ -1,6 +1,7 @@
 *.o
 *.so
 .d
+utest
 artefacts/setenv.sh
 artefacts/bin/*
 artefactslibin/*
