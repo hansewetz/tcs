@@ -6,10 +6,7 @@ LOCAL_OBJS      = utest.o strutils.o
 
 # Control.
 LOCAL_LIBS      = -lutils \
-	          -lboost_log -lboost_iostreams \
-	          -lboost_program_options \
-	          -lgtest \
-	          -lpthread -ldl
+	          -lgtest
 
 LOCAL_LIBPATH   = -L$(TCS_LIBDIR)
 LOCAL_INCPATH   = 

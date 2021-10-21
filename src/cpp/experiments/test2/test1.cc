@@ -1,5 +1,6 @@
 #include "general/utils/strutils.h"
-//#include "general/utils/utils.h"
+#include "general/utils/utils.h"
+#include <ranges>
 #include <vector>
 #include <list>
 #include <set>
@@ -7,29 +8,32 @@ using namespace std;
 using namespace tcs;
 
 // test
+template<typename T>
 struct Junk{
-  Junk(int j):i(j){}
-  int i;
+  Junk(T j):i(j){}
+  T i;
 };
-ostream&operator<<(ostream&os,Junk const&junk){
+template<typename T>
+ostream&operator<<(ostream&os,Junk<T>const&junk){
   return os<<junk.i;
 }
+
 // test main program
 int main(){
-  auto p1=pair("Hello"s,17);
-  cout<<p1<<endl;
+/*
+  vector<int>v{1,2,3,4,5};
+  cout<<v<<endl;
+*/
+/*
+  auto even=[](int i){return i%2;};
+  auto square=[](int i){return i*i;};
+  auto ints={0,1,2,3,4};
+  for (int i:ints|std::views::filter(even)|std::views::transform(square)){
+    std::cout<<i<<' ';
+  }
+  cout<<endl;
+*/
 
-  char c='a';
-  int i=17;
-
-  using mytype=std::decay_t<decltype(true?char():int())>;
-  cout<<"mytype: "<<type2string(mytype())<<endl;
-
-  auto maxres=tmax(c,i);
-  cout<<"max: "<<maxres<<", type: "<<type2string(maxres)<<endl;
-
-  cout<<strcat(", "s,list<int>{1,2,3,4})<<endl;
-  cout<<strcat(", "s,set<int>{1,2,3,4})<<endl;
-  cout<<strcat(", "s,vector<int>{1,2,3,4})<<endl;
-  cout<<strcat(", "s,Junk{1},"2",3,4)<<endl;
+  //pair<int,string>p(17,"Hello"s);
+  //cout<<p<<endl;
 }

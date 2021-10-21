@@ -6,32 +6,32 @@ using namespace std;
 using namespace tcs;
 
 // ---- first (collection based) version of strcat
-// strcat1 - basic case
-TEST(strutils,strcat1){
+// strcat - basic case
+TEST(strutils,strcat_1){
   vector<string>v{"one","two","3","4"};
   string res=strcat(0,v);
   ASSERT_EQ(res,"one0two0304");
 }
-// strcat2 - boundary case with one element
-TEST(strutils,strcat2){
+// strcat - boundary case with one element
+TEST(strutils,strcat_2){
   vector<string>v{"one"};
   string res=strcat(", ",v);
   ASSERT_EQ(res,"one");
 }
-// strcat3 - boundary case with no elements
-TEST(strutils,strcat3){
+// strcat - boundary case with no elements
+TEST(strutils,strcat_3){
   vector<string>v;
   string res=strcat(", ",v);
   ASSERT_EQ(res,"");
 }
 // ---- second (argument pack based) version of strcat
-// strcat10 - basic case
-TEST(strutils,strcat10){
+// strcat - basic case
+TEST(strutils,strcat_10){
   string res=strcat(0,"one","two",3,4);
   ASSERT_EQ(res,"one0two0304");
 }
-// strcat11 - boundary case with one element
-TEST(strutils,strcat11){
+// strcat - boundary case with one element
+TEST(strutils,strcat_11){
   string res=strcat(0,"one");
   ASSERT_EQ(res,"one");
 }

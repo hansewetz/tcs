@@ -1,10 +1,11 @@
+#pragma once
 #include "utils.h"
 #include <filesystem>
 #include <optional>
 #include <sstream>
 namespace tcs{
 
-// -- merge strings from a collection with separator in between
+// -- merge strings from a collection with separator in between elements
 template<Streamable S,template<class>class C,Streamable T>
 [[nodiscard]]std::string strcat(S const&sep,C<T>const&c){
   std::stringstream ret;
@@ -14,13 +15,17 @@ template<Streamable S,template<class>class C,Streamable T>
   }
   return ret.str();
 }
-// -- merge streamable values into a string with separator
+// -- merge streamable values into a string with separator between values
 template<Streamable S,Streamable T,Streamable...Ts>
 [[nodiscard]]std::string strcat(S const&s,T const&t,Ts const&...ts){
+// TODO - use function from utility.h
   std::stringstream ret;
   ret<<t,((ret<<s<<ts),...);
   return ret.str();
 }
+// -- merge streamable tuple values into a string with separator between values
+// TODO - use function from utility.h
+
 // --- split a string and return elements as a collection
 // TODO
 // split on a character
@@ -28,9 +33,9 @@ template<Streamable S,Streamable T,Streamable...Ts>
 // split on a string
 
 // --- string to upper/lower
-// TODO
 [[nodiscard]]std::string toupper(std::string const&s);
 [[nodiscard]]std::string tolower(std::string const&s);
+// TODO
 [[nodiscard]]std::string toupperutf8(std::string const&rawstr);
 [[nodiscard]]std::string tolowerutf8(std::string const&rawstr);
 
