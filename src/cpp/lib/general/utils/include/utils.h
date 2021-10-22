@@ -38,41 +38,6 @@ template<typename T1,typename T2>
   return t1<t2?t1:t2;
 }
 
-// --- stream operators
-// stream a pair
-/*
-template<Streamable T1,Streamable T2>
-std::ostream&operator<<(std::ostream&os,std::pair<T1,T2>const&p){
-  return os<<"["<<p.first<<", "<<p.second<<"]";
-}
-*/
-// stream a tuple
-template<typename TU,std::size_t...Is>
-void printtupaux(std::ostream&os,TU const&tu,std::index_sequence<Is...>){
-  (...,(os<<(Is==0?"":", ")<<std::get<Is>(tu)));
-}
-template<Streamable...Ts>
-std::ostream&operator<<(std::ostream&os,std::tuple<Ts...>const&tu){
-  os<<"[";
-  printtupaux(os,tu,std::make_index_sequence<sizeof...(Ts)>());
-  os<<"]";
-  return os;
-}
-/*
-// stream a collection
-template<Streamable T,template<class>class C>requires IterableBE<C<T>>
-std::ostream&operator<<(std::ostream&os,C<T>const&c){
-  os<<"[";
-  for(auto it=begin(c);it!=end(c);++it){
-    os<<*it;
-    if(next(it)!=end(c))os<<", ";
-  }
-  return os<<"]";
-}
-*/
-// stream operator for argument pack
-// TODO
-
 // --- add elements to collections
 // push elements on a collection
 template<typename C,typename...Ts>

@@ -20,6 +20,18 @@ ostream&operator<<(ostream&os,Junk<T>const&junk){
 
 // test main program
 int main(){
+  vector<string>v{"Hello","1","2"};
+  cout<<strcat(", ",v)<<endl;
+
+  string str{"Hello"};
+  cout<<strcat(", ",str)<<endl;
+
+  auto tu1=make_tuple();
+  cout<<strcat(", ",tu1)<<endl;
+
+  auto tup=make_tuple("Hello"s,1,4.7,"Again");
+  cout<<strcat(", ",tup)<<endl;
+
 /*
   vector<int>v{1,2,3,4,5};
   cout<<v<<endl;
