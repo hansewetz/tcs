@@ -19,6 +19,16 @@ concept IterableBE=requires(T t){
   // just make sure the following expression is valid (simple requirement)
   begin(t)!=end(t);
 };
+// check if class supports 'push_back' for type T
+template<typename C,typename T>
+concept HasPushback=requires(C&c,T const&t){
+  c.push_back(t);
+};
+// check if class supports 'insert' for type T
+template<typename C,typename T>
+concept HasInsert=requires(C&c,T const&t){
+  c.insert(t);
+};
 
 // --- make types readable
 // get a type as a string
@@ -43,5 +53,14 @@ template<typename T1,typename T2>
 template<typename C,typename...Ts>
 void push_vals(C&c,Ts&&...ts){
   (c.push_back(std::forward<Ts>(ts)),...);
+}
+// 'push_back' on collection by doing 'insert' if push_back not supported
+template<typename C,typename T>requires HasPushback<C,T>
+void push_back(C&c,T const&t){
+  c.push_back(t);
+}
+template<typename C,typename T>requires HasInsert<C,T>
+void push_back(C&c,T const&t){
+  c.insert(t);
 }
 }

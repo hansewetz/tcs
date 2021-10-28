@@ -17,9 +17,13 @@ template<typename T>
 ostream&operator<<(ostream&os,Junk<T>const&junk){
   return os<<junk.i;
 }
-
 // test main program
 int main(){
+  string str="Hello again where are you again";
+  cout<<"v: "<<strcat("|",splitstr<set<string>>(str,"a "))<<endl;
+
+
+/*
   vector<string>v{"Hello","1","2"};
   cout<<strcat(", ",v)<<endl;
 
@@ -31,12 +35,11 @@ int main(){
 
   auto tup=make_tuple("Hello"s,1,4.7,"Again");
   cout<<strcat(", ",tup)<<endl;
+  cout<<"("<<strcat(", ",tup)<<")"<<endl;
 
-/*
-  vector<int>v{1,2,3,4,5};
-  cout<<v<<endl;
-*/
-/*
+  cout<<"typ: "<<type2string(tup)<<endl;
+
+
   auto even=[](int i){return i%2;};
   auto square=[](int i){return i*i;};
   auto ints={0,1,2,3,4};

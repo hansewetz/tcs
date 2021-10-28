@@ -1,4 +1,6 @@
 #include "general/utils/strutils.h"
+#include <iterator>
+#include <sstream>
 #include <cctype>
 using namespace std;
 namespace tcs{
@@ -11,11 +13,11 @@ string xformstr(string const&s,int(*fx)(int)){
   return ret;
 }
 // create an uppercase string from a string
-string toupper(std::string const&s){
+string toupper(string const&s){
   return xformstr(s,::toupper);
 }
 // create a lowercase string from a string
-string tolower(std::string const&s){
+string tolower(string const&s){
   return xformstr(s,::tolower);
 }
 }

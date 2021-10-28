@@ -1,11 +1,14 @@
 #pragma once
 #include "utils.h"
+#include <boost/algorithm/string.hpp>
 #include <filesystem>
 #include <optional>
 #include <sstream>
+#include <vector>
+#include <algorithm>
 namespace tcs{
 
-// --- strcat(...) functinos: merge values into a string where values are separated by a separator
+// --- strcat(...) functions: merge values from collectino, tuple, cmd line parameters and insert separator between them
 // for example: 
 //
 //     auto tup=make_tuple("Hello"s,1,4.7,"Again");
@@ -29,11 +32,6 @@ template<Streamable S,Streamable T,template<class>class C>
   ret<<"]";
   return ret.str();
 }
-// merge an empty list
-template<Streamable S>
-[[nodiscard]]std::string strcat(S const&sep){
-  return "";
-}
 // merge streamable values into a string with separator between values
 template<Streamable S,Streamable T,Streamable...Ts>
 [[nodiscard]]std::string strcat(S const&sep,T const&t,Ts const&...ts){
@@ -42,26 +40,40 @@ template<Streamable S,Streamable T,Streamable...Ts>
   return ret.str();
 }
 // merge streamable tuple values into a string with separator between values
-template<Streamable S, typename TU,std::size_t...Is>
-void strcattupaux(S const&sep,std::stringstream&str,TU const&tu,std::index_sequence<Is...>){
-  str<<strcat(sep,get<Is>(tu)...);
-}
 template<Streamable S,Streamable...Ts>
 [[nodiscard]]std::string strcat(S const&sep,std::tuple<Ts...>const&tu){
-  std::stringstream ret;
-  ret<<"[";
-  strcattupaux(sep,ret,tu,std::make_index_sequence<sizeof...(Ts)>());
-  ret<<"]";
-  return ret.str();
+  constexpr std::size_t LEN=sizeof...(Ts);               // get length of tuple
+  std::stringstream ret;                                 // write tuple to a string stream
+  std::string emptysep;
+  ret<<"[";                                              // wrap output in brackets
+  [&]<std::size_t...Is>(std::index_sequence<Is...>){     // lambda template writing tuple elements
+    ((ret<<std::get<Is>(tu)<<(Is<(LEN-1)?sep:emptysep)),...); // don't write separator after last element
+  }(std::make_index_sequence<LEN>());                    // call lambda and pass an index sequence as parameter so we can walk through tuple elements
+  ret<<"]";                                              // (wrap in bracket)
+  return ret.str();                                      // get string from string stream
 }
 
-// --- split functions
-// split a string and return elements as a collection
-// TODO
-// split on a character
-// split on space
-// split on a string
-// ---
+// --- string split functions
+// (by default, tokens are store in a vector<string>)
+// (however, tokens can also be specified to be stored in a set<string> for example)
+
+// split string on characters part of a 'split string'
+template<typename C=std::vector<std::string>>
+[[nodiscard]]auto splitstr(std::string const&str,std::string const&splitchars)->C{
+  C ret;
+  boost::split(ret,str,boost::is_any_of(splitchars));
+  return ret;
+}
+// split string on a single character
+template<typename C=std::vector<std::string>>
+[[nodiscard]]auto splitstr(std::string const&str,char splitchar)->C{
+  return splitstr<C>(str,std::string(1,splitchar));
+}
+// split string on blank space (0x20)
+template<typename C=std::vector<std::string>>
+[[nodiscard]]auto splitstr(std::string const&str)->C{
+  return splitstr<C>(str,std::string(1,' '));
+}
 
 // -- string conversions functions
 // string to upper/lower
