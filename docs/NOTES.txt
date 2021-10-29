@@ -1,4 +1,37 @@
 ----------------------------------------------------------------------------
+--- (requires+syntax) function template with concept or requirement
+----------------------------------------------------------------------------
+>>>PROBLEM: where to put requires constraint when declaring a function template
+
+>>>SOLUTION: there are multiple places and multiple ways to specify requirements:
+
+Assume we have the concept 'Streamable' and want to define a function 'void foo(Streamable)':
+
+  // (1)
+  template<Streamable T>
+  void foo(T t){...}
+
+  // (2)
+  template<typename T>
+  requires requires(T t){ /* constraint spec for t to be streamable */ }
+  void foo(T t){...}
+ 
+  // (3)
+  template<typename T>
+  requires Streamable<T>
+  void foo(T t){...}
+ 
+  // (4)
+  template<typename T>
+  void foo(T t) requires Streamable<T>{ }
+ 
+  // (5)
+  void foo(Streamable auto t){}
+
+
+
+
+----------------------------------------------------------------------------
 --- (template+tuple+lambda+fold) function template taking tuple as parameter
 ----------------------------------------------------------------------------
 >>>PROBLEM: process each element in a tuple without calling a helper function

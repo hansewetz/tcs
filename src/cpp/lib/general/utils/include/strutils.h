@@ -1,6 +1,7 @@
 #pragma once
 #include "utils.h"
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <filesystem>
 #include <optional>
 #include <sstream>
@@ -33,11 +34,13 @@ requires((!std::is_same_v<C<T>,std::basic_string<T>>))
   ret<<"]";
   return ret.str();
 }
-// merge streamable values into a string with separator between values
+// merge streamable values from a pack into a string with separator between values
 template<Streamable S,Streamable T,Streamable...Ts>
 [[nodiscard]]std::string strcat(S const&sep,T const&t,Ts const&...ts){
   std::stringstream ret;
+  ret<<"[";
   ret<<t,((ret<<sep<<ts),...);
+  ret<<"]";
   return ret.str();
 }
 // merge streamable tuple values into a string with separator between values
@@ -45,10 +48,11 @@ template<Streamable S,Streamable...Ts>
 [[nodiscard]]std::string strcat(S const&sep,std::tuple<Ts...>const&tu){
   constexpr std::size_t LEN=sizeof...(Ts);               // get length of tuple
   std::stringstream ret;                                 // write tuple to a string stream
-  std::string emptysep;
+  std::string ssep=boost::lexical_cast<std::string>(sep);// convert sep to string
+  std::string emptysep;                                  // get empty separator as a string
   ret<<"[";                                              // wrap output in brackets
   [&]<std::size_t...Is>(std::index_sequence<Is...>){     // lambda template writing tuple elements
-    ((ret<<std::get<Is>(tu)<<(Is<(LEN-1)?sep:emptysep)),...); // don't write separator after last element
+    ((ret<<std::get<Is>(tu)<<(Is<(LEN-1)?ssep:emptysep)),...); // don't write separator after last element
   }(std::make_index_sequence<LEN>());                    // call lambda and pass an index sequence as parameter so we can walk through tuple elements
   ret<<"]";                                              // (wrap in bracket)
   return ret.str();                                      // get string from string stream

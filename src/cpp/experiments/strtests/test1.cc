@@ -20,7 +20,6 @@ ostream&operator<<(ostream&os,Junk<T>const&junk){
 
 // test main program
 int main(){
-/*
   auto tup1=make_tuple("one"s,"two"s,"three"s);
   vector<string>vtup1;
   push_vals(vtup1,tup1);
@@ -51,7 +50,6 @@ int main(){
   cout<<"("<<strcat(", ",tup)<<")"<<endl;
 
   cout<<"typ: "<<type2string(tup)<<endl;
-*/
 
 /*
   auto even=[](int i){return i%2;};
