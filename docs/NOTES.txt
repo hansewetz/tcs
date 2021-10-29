@@ -1,0 +1,154 @@
+----------------------------------------------------------------------------
+--- (template+tuple+lambda+fold) function template taking tuple as parameter
+----------------------------------------------------------------------------
+>>>PROBLEM: process each element in a tuple without calling a helper function
+
+  template<typename...Ts>
+  void foo(std::tuple<Ts...>const&tu){
+    // call 'do_something(...)' on each tuple element
+    ...
+  }
+
+>>>SOLUTION:
+use lambda function together with index sequence and folding
+
+  template<typename...Ts>
+  void foo(std::tuple<Ts...>const&tu){
+    ...
+    constexpr std::size_t LEN=sizeof...(Ts);
+    [&]<std::size_t...Is>(std::index_sequence<Is...>){
+      // call 'do_something(...)' on each tuple element
+      (do_something(std::get<Is>(tu)),...);
+    }(fp(std::make_index_sequence<LEN>()));
+  }
+
+----------------------------------------------------------------------------
+--- (type as string) get the type of a variable as a readable string
+----------------------------------------------------------------------------
+>>>PROBLEM: given a variable, get the type of the variable as a string
+
+>>>SOLUTION: 
+
+  template<typename T>
+  [[nodiscard]]std::string type2string(T t){
+    int status;
+    return std::string("(")+abi::__cxa_demangle(typeid(T).name(),0,0,&status)+")";
+  }
+
+----------------------------------------------------------------------------
+--- (concept) Check that a type is iterable and that the values can be converted to some type
+----------------------------------------------------------------------------
+>>>PROBLEM: in the following function template, we want to be sure we can iterate over a collectino and convert each value to a value of type T
+
+  template<typename C,typename T>
+  requires IsIterable2Type<C,T>
+  void iter(C const&c){
+    for(T t:c)do_something(t);
+  }
+
+>>>SOLUTION: write a concept: IsIterable2Type<C,T>
+
+  template<typename C,typename T>
+  concept IsIterable2Type=requires(C c){
+    std::convertible_to<decltype(*c.begin()),T>;
+  };
+
+
+----------------------------------------------------------------------------
+--- (concept) concepts can be used to select function template to call
+----------------------------------------------------------------------------
+>>>PROBLEM: some collection supports 'push_back(...) method whereas others supports only 'insert(...) method
+            provide one interface to both type of collections
+
+>>>SOLUTION: create two concepts and use teh concepts to pick functin to call
+
+  // check if class supports 'push_vals' for types Ts...
+  template<typename C,typename ...Ts>
+  concept HasPushback=requires(C&c,Ts const&...ts){
+    (c.push_back(ts),...);
+  };
+  // check if class supports 'insert' for type T
+  template<typename C,typename ...Ts>
+  concept HasInsert=requires(C&c,Ts const&...ts){
+    (c.insert(ts),...);
+  };
+
+  ...
+
+  // 'push_vals' on collection by doing 'insert' if push_back not supported
+  template<typename C,typename ...Ts>
+  requires HasPushback<C,Ts...>
+  void push_vals(C&c,Ts const&...ts){
+    (c.push_back(ts),...);
+  }
+  template<typename C,typename ...Ts>
+  requires HasInsert<C,Ts...>
+  void push_vals(C&c,Ts const&...ts){
+    (c.insert(ts),...);
+  }
+
+  ...
+
+  set<int>s;
+  push_vals(s,1,2,3,4);  // calls insert(...) on set
+  ...
+  vector<int>v;
+  push_vals(v,1,2,3,4);  // calls push_back(...) on vector
+
+
+----------------------------------------------------------------------------
+--- (concept in parameter list) using concept directly as type in parameter specification
+----------------------------------------------------------------------------
+>>>PROBLEM: simplify function template
+
+say we have a concept Streamable:
+
+  template <typename...Ts>
+  concept Streamable=requires(std::ostream&os,Ts...ts){
+    {((os<<ts),...)};
+  };
+
+we would normally use it as:
+
+  template<Streamable T>
+  void foo(T const&t){...}
+
+>>>SOLUTION: simplify declaration using 'auto':
+
+  void foo(Streamable auto const&t){...}
+
+
+----------------------------------------------------------------------------
+--- (memory+delete+new) memory operators and expressions for placement new
+----------------------------------------------------------------------------
+
+PROBLEM: how to use new/delete operator for placement new
+
+SOLUTION: understand  difference between new/delete operators and new/delete expressions
+
+new/delete operators manage memory and sometimes construct/destruct objects also
+for example for placement new we can do the following:
+
+  void*p=::operator new(10);   // allcate 10 bytes - no object construction (new operator, not new expression)
+  Foo*foo=new(p) Foo();        // construct Foo object in already allocated memory (new expression)
+  foo->~Foo();                 // destruct Foo object but keep memory around
+  ::operator delete(p);        // deallocate memory (operator, not delete expression)
+
+Another example:
+
+  Foo*foo=mew Foo();           // allocates memory by invoking '::operator new(...)' and then constructs an object Foo in the allocated memory
+  delete foo;                  // calls destructor on 'foo' memory and then deallocates memory using '::operator delete(...)'
+
+NOTES:
+(1)
+it turns out that in the placement new example, we can destroy and deallocate memory in one go by:
+
+  delete foo;
+
+however, this only works if memory was allocated using '::operator new(...)' not if we used a buffer that was not allocated by declared on teh stack for example
+The standard states that if the value passed to 'delete' is non null, the destructor will be called followed by 'operator delete(...)':
+   
+    <https://en.cppreference.com/w/cpp/language/delete>
+    If expression is not a null pointer and the deallocation function is not a destroying delete (since C++20), 
+    the delete expression invokes the destructor (if any) for the object that's being destroyed, or for every 
+    element of the array being destroyed (proceeding from the last element to the first element of the array).  

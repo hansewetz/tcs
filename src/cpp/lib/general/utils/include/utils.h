@@ -1,4 +1,5 @@
 #pragma once
+#include "utils-concepts.h"
 #include <concepts>
 #include <type_traits>
 #include <iostream>
@@ -7,36 +8,15 @@
 #include <cxxabi.h>
 namespace tcs{
 
-// --- concepts
-// check if types in a type pack are all streamable
-template <typename...Ts>
-concept Streamable=requires(std::ostream&os,Ts...ts){
-  {((os<<ts),...)};
-};
-// concept for iterable with begin()/end() methods
-template<typename T>
-concept IterableBE=requires(T t){
-  // just make sure the following expression is valid (simple requirement)
-  begin(t)!=end(t);
-};
-// check if class supports 'push_back' for type T
-template<typename C,typename T>
-concept HasPushback=requires(C&c,T const&t){
-  c.push_back(t);
-};
-// check if class supports 'insert' for type T
-template<typename C,typename T>
-concept HasInsert=requires(C&c,T const&t){
-  c.insert(t);
-};
-
-// --- make types readable
+// --- convert type to readable string
 // get a type as a string
 template<typename T>
 [[nodiscard]]std::string type2string(T t){
   int status;
   return std::string("(")+abi::__cxa_demangle(typeid(T).name(),0,0,&status)+")";
 }
+
+
 
 // --- min/max functions with variable return type
 template<typename T1,typename T2>
@@ -48,19 +28,34 @@ template<typename T1,typename T2>
   return t1<t2?t1:t2;
 }
 
-// --- add elements to collections
-// push elements on a collection
-template<typename C,typename...Ts>
-void push_vals(C&c,Ts&&...ts){
-  (c.push_back(std::forward<Ts>(ts)),...);
+
+
+// --- add (push) elements to collection
+// 'push_vals' on collection by doing 'insert' if push_back not supported
+template<typename C,typename ...Ts>
+requires HasPushback<C,Ts...>
+void push_vals(C&c,Ts const&...ts){
+  (c.push_back(ts),...);
 }
-// 'push_back' on collection by doing 'insert' if push_back not supported
-template<typename C,typename T>requires HasPushback<C,T>
-void push_back(C&c,T const&t){
-  c.push_back(t);
+template<typename C,typename ...Ts>
+requires HasInsert<C,Ts...>
+void push_vals(C&c,Ts const&...ts){
+  (c.insert(ts),...);
 }
-template<typename C,typename T>requires HasInsert<C,T>
-void push_back(C&c,T const&t){
-  c.insert(t);
+// push elements from one collection to another
+template<typename C1,typename T,template<class>typename C2>
+requires SupportsPushvals<C1,T>&&IsIterable2Type<C2<T>,T>
+void push_vals(C1&c1,C2<T>const&c2){
+  for(auto&&t:c2)push_vals(c1,t);
+}
+// push elements of a tuple on a collection
+template<typename C,typename ...Ts>
+requires SupportsPushvals<C,Ts...>
+void push_vals(C&c,std::tuple<Ts...>const&tu){
+  constexpr std::size_t LEN=sizeof...(Ts);
+  auto fp=[&]<std::size_t...Is>(std::index_sequence<Is...>){
+    (push_vals(c,std::get<Is>(tu)),...);
+  };
+  fp(std::make_index_sequence<LEN>());
 }
 }
