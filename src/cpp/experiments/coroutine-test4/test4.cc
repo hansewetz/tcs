@@ -27,6 +27,10 @@ using namespace  std;
   We can keep both options so that a coroutine can deregister from scheduler at any time as opposed to only at the end
 */
 
+// keep track of alive tasks we have
+// NOTE!
+static atomic<size_t>nalivecoroutines=0;
+
 // some typedefs
 using handle_t=coroutine_handle<>;
 using queue_t=queue<handle_t>;
@@ -49,18 +53,11 @@ public:
   void schedule(handle_t h){
     unique_lock<mutex>lck(mtx_);
     q_.push(h);
-    handles_.insert(h);
   }
   // coroutine calls this when it is no longer part of scheduling
   // (we won't generate an error if we try to deregister a non existing handle)
   void leave(handle_t h){
     unique_lock<mutex>lck(mtx_);
-    handles_.erase(h);
-  }
-  // #of coroutines that participate in scheduling
-  size_t count(){
-    unique_lock<mutex>lck(mtx_);
-    return handles_.size();
   }
   // run until 'stop' flag is set
   void operator()(){
@@ -102,10 +99,9 @@ private:
   }
   // private data
   size_t nthreads_;
-  atomic<bool>stop_{false};
-  queue_t q_;
-  set<handle_t>handles_;
-  mutable mutex mtx_;
+  atomic<bool>stop_{false};    // scheduler stop flag
+  queue_t q_;                  // queue of coroutine waiting to be scheduled
+  mutable mutex mtx_;          // mutex protecting scheduling queue
 };
 
 // promise type
@@ -171,6 +167,7 @@ struct Task{
 
 // test coroutine function
 Task maketask(string id,Scheduler&s){
+  ++nalivecoroutines;
   cout<<"(1) task: "<<id<<" first suspend ..."<<endl;
   co_await schedule(s);
   cout<<"(2) task: "<<id<<" second suspend ..."<<endl;
@@ -179,6 +176,7 @@ Task maketask(string id,Scheduler&s){
   cout<<"(3) task: "<<id<<" co_return ..."<<endl;
   sleep(2);
   co_await leavescheduler(s); // not needed since 'promise.final_suspend()' will deregister with the scheduler
+  --nalivecoroutines;
 }
 // main test program 
 int main(){
@@ -186,7 +184,7 @@ int main(){
   size_t ntasks{10};
   size_t nthreads{3};
 
-  // scehduler for coroutine objects
+  // scheduler for coroutine objects
   Scheduler schd(nthreads);
 
   // create coroutine tasks - each task will register coroutine with scheduler
@@ -200,8 +198,8 @@ int main(){
  std::jthread jt([&schd]{schd();});
 
   // wait until we have no more tasks in scheduler
-  while(schd.count()){
-    cout<<">>>main<<< count: "<<schd.count()<<endl;
+  while(nalivecoroutines){
+    cout<<">>>main<<< alive coroutine count: "<<nalivecoroutines<<endl;
     sleep(1);
   }
   cout<<">>>main<<< stopping scheduler ..."<<endl;

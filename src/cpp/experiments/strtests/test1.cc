@@ -10,16 +10,52 @@ using namespace tcs;
 // test
 template<typename T>
 struct Junk{
-  Junk(T j):i(j){}
+
+template<Streamable U>
+friend ostream&operator<<(ostream&os,Junk<U>const&junk){
+  return os<<junk.i;
+}
+
+private:
   T i;
+public:
+  Junk(T j):i(j){}
+
+  // add comparison operator(s)
+  auto operator<=>(Junk<T>const&other)const{
+    return i<=>other.i;
+  }
 };
+
 template<typename T>
+requires requires(Junk<T> t){
+  {cout<<t.i}->std::same_as<std::ostream&>;
+}
 ostream&operator<<(ostream&os,Junk<T>const&junk){
   return os<<junk.i;
 }
 
 // test main program
 int main(){
+
+  Junk junk1(8);
+  Junk junk2(10);
+  auto res=junk1<=>junk2;
+  cout<<"tmax(junk1, junk2): "<<boolalpha<<tmax(junk1,junk2)<<endl;
+
+/*
+  int i1{8};
+  int i2{10};
+  cout<<tmax(i1,i2)<<endl;
+  cout<<tmax(&i1,&i2)<<endl;
+  cout<<tmin(i1,i2)<<endl;
+  cout<<tmin(&i1,&i2)<<endl;
+*/
+/*
+  Junk<int>j1(2);
+  cout<<j1<<endl;
+
+
   auto tup1=make_tuple("one"s,"two"s,"three"s);
   vector<string>vtup1;
   push_vals(vtup1,tup1);
@@ -50,7 +86,7 @@ int main(){
   cout<<"("<<strcat(", ",tup)<<")"<<endl;
 
   cout<<"typ: "<<type2string(tup)<<endl;
-
+*/
 /*
   auto even=[](int i){return i%2;};
   auto square=[](int i){return i*i;};

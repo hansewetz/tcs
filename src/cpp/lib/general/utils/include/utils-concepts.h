@@ -9,7 +9,7 @@ namespace tcs{
 // check if types in a type pack are all streamable
 template <typename...Ts>
 concept Streamable=requires(std::ostream&os,Ts...ts){
-  ((os<<ts),...);
+  {((os<<ts),...)}->std::same_as<std::ostream&>;
 };
 // concept for iterable with begin()/end() methods
 template<typename T>
@@ -35,5 +35,13 @@ concept SupportsPushvals=HasPushback<C,Ts...>||HasInsert<C,Ts...>;
 template<typename C,typename T>
 concept IsIterable2Type=requires(C c){
   std::convertible_to <decltype(*c.begin()),T>;
+};
+
+// define 'is pointer' concept
+template<typename T>
+concept IsPointer=requires(T t){
+  *t;                                     // deref
+  {t<t}->std::convertible_to<bool>;       // comparing pointers
+  t==nullptr;                             // compare to nullptr
 };
 }

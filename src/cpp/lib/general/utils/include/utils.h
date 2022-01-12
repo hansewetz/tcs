@@ -19,15 +19,23 @@ template<typename T>
 
 
 // --- min/max functions with variable return type
-template<typename T1,typename T2>
-[[nodiscard]]auto tmax(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
+// (also handling pointer values)
+[[nodiscard]]auto tmax(auto t1,auto t2){
   return t1>t2?t1:t2;
 }
-template<typename T1,typename T2>
-[[nodiscard]]auto tmin(T1 t1,T2 t2)->std::common_type_t<T1,T2>{
+// (constrain for pointer type)
+[[nodiscard]]auto tmax(IsPointer auto t1,IsPointer auto t2)
+requires std::three_way_comparable_with<decltype(*t1), decltype(*t2)>{
+  return tmax(*t1,*t2);
+}
+[[nodiscard]]auto tmin(auto t1,auto t2){
   return t1<t2?t1:t2;
 }
-
+// (constrain for pointer type)
+[[nodiscard]]auto tmin(IsPointer auto t1,IsPointer auto t2)
+requires std::three_way_comparable_with<decltype(*t1), decltype(*t2)>{
+  return tmin(*t1,*t2);
+}
 
 
 // --- add (push) elements to collection

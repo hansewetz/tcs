@@ -23,7 +23,12 @@ namespace tcs{
 // merge streamable values from a collection with separator in between elements
 // (we don't want to use this function if C<T> is a string, instead we want the 'strcat(S, T, Ts ...)
 template<Streamable S,Streamable T,template<class>class C>
-requires((!std::is_same_v<C<T>,std::basic_string<T>>))
+requires requires(S s,C<T>c,std::ostream&os){
+  begin(c);
+  os<<s;
+  os<<*begin(c);
+}
+
 [[nodiscard]]std::string strcat(S const&sep,C<T>const&c){
   std::stringstream ret;
   ret<<"[";

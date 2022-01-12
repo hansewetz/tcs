@@ -1,7 +1,31 @@
 ----------------------------------------------------------------------------
+--- (concept definition) define a concept in terms of other concepts
+----------------------------------------------------------------------------
+>>>PROBLEM: syntax
+
+>>>SOLUTION: 
+              template < template-parameter-list >
+              concept concept-name = constraint-expression;
+   where
+              constraint-expression
+   is 
+              conjunction
+              disjunction
+              atomic
+
+Example:
+  template<typename T>
+  concept Ispointer=std::is_pointer_v<T>;
+
+
+  template<typename T>
+  concept Ispointer=std::is_pointer_v<T>;
+
+
+----------------------------------------------------------------------------
 --- (requires+syntax) function template with concept or requirement
 ----------------------------------------------------------------------------
->>>PROBLEM: where to put requires constraint when declaring a function template
+>>>PROBLEM: where to put 'requires' constraint when declaring a function template
 
 >>>SOLUTION: there are multiple places and multiple ways to specify requirements:
 
@@ -34,7 +58,7 @@ Assume we have the concept 'Streamable' and want to define a function 'void foo(
 ----------------------------------------------------------------------------
 --- (template+tuple+lambda+fold) function template taking tuple as parameter
 ----------------------------------------------------------------------------
->>>PROBLEM: process each element in a tuple without calling a helper function
+>>>PROBLEM: process each element in a tuple without calling an external helper function
 
   template<typename...Ts>
   void foo(std::tuple<Ts...>const&tu){
@@ -185,3 +209,44 @@ The standard states that if the value passed to 'delete' is non null, the destru
     If expression is not a null pointer and the deallocation function is not a destroying delete (since C++20), 
     the delete expression invokes the destructor (if any) for the object that's being destroyed, or for every 
     element of the array being destroyed (proceeding from the last element to the first element of the array).  
+
+----------------------------------------------------------------------------
+--- (overload) overload and select based on concepts
+----------------------------------------------------------------------------
+
+PROBLEM: two functions for getting max, one for values and one for pointyers
+
+SOLUTION: overload using concepts
+
+  template<typename T>
+  concept IsPointer=std::is_pointer_v<T>;
+
+  template<typename T>
+  requires (!IsPointer<T>)
+  auto mymax(T t1,T t2){return t1>t2?t1:t2;}
+
+  template<typename T>
+  requires IsPointer<T>
+  auto mymax(T t1,T t2){return *t1>*t2?*t1:*t2;}
+
+  ...
+  int i1{8};
+  int i2{10};
+  cout<<mymax(i1,i2)<<endl;     // calls non pointer version
+  cout<<mymax(&i1,&i2)<<endl;   // calls pointer version
+
+we could also have defined the 'mymax' functions as:
+
+  template<typename T>
+  auto mymax(T t1,T t2){return t1>t2?t1:t2;}
+
+  template<IsPointer T>
+  auto mymax(T t1,T t2){return mymax(*t1,*t2);}
+
+or as:
+
+  auto mymax(auto t1,auto t2){return t1>t2?t1:t2;}
+  auto mymax(IsPointer auto t1,IsPointer auto t2){return mymax(*t1,*t2);}
+
+
+
