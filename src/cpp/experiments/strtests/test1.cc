@@ -43,15 +43,13 @@ int main(){
   auto res=junk1<=>junk2;
   cout<<"tmax(junk1, junk2): "<<boolalpha<<tmax(junk1,junk2)<<endl;
 
-/*
   int i1{8};
   int i2{10};
   cout<<tmax(i1,i2)<<endl;
   cout<<tmax(&i1,&i2)<<endl;
   cout<<tmin(i1,i2)<<endl;
   cout<<tmin(&i1,&i2)<<endl;
-*/
-/*
+
   Junk<int>j1(2);
   cout<<j1<<endl;
 
@@ -86,8 +84,7 @@ int main(){
   cout<<"("<<strcat(", ",tup)<<")"<<endl;
 
   cout<<"typ: "<<type2string(tup)<<endl;
-*/
-/*
+
   auto even=[](int i){return i%2;};
   auto square=[](int i){return i*i;};
   auto ints={0,1,2,3,4};
@@ -96,7 +93,6 @@ int main(){
   }
   cout<<endl;
 
-  //pair<int,string>p(17,"Hello"s);
-  //cout<<p<<endl;
-*/
+  pair<int,string>p(17,"Hello"s);
+  cout<<strcat(", ",p)<<endl;
 }

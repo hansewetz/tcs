@@ -62,6 +62,14 @@ template<Streamable S,Streamable...Ts>
   ret<<"]";                                              // (wrap in bracket)
   return ret.str();                                      // get string from string stream
 }
+// merge streamable pair values into a string with separator between values
+template<Streamable S,Streamable T1,Streamable T2>
+[[nodiscard]]std::string strcat(S const&sep,std::pair<T1,T2>const&p){
+  std::stringstream ret;                                 // write tuple to a string stream
+  std::string ssep=boost::lexical_cast<std::string>(sep);// convert sep to string
+  ret<<"["<<p.first<<ssep<<p.second<<"]";
+  return ret.str();                                      // get string from string stream
+}
 
 // --- string split functions
 // (by default, tokens are store in a vector<string>)
