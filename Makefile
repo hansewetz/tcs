@@ -1,4 +1,4 @@
-SUBDIRS = env src 
+SUBDIRS = env src  
 include $(PROJECT_ROOT)/env/makerules/subdirs.rules
 
 artefacts: src env docs
