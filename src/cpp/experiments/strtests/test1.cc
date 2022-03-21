@@ -38,6 +38,13 @@ ostream&operator<<(ostream&os,Junk<T>const&junk){
 // test main program
 int main(){
 
+  auto t1=make_tuple(1,"hello", 1.7,"again"s);
+  auto t2=vector<string>{"1","2"};
+  auto t3=list<string>{"goodmorning","goodbuy"};
+  cout<<strcat("|",t1)<<endl;
+  cout<<strcat("|",t1)<<endl;
+  cout<<strcat("|",t3)<<endl;
+
   Junk junk1(8);
   Junk junk2(10);
   auto res=junk1<=>junk2;

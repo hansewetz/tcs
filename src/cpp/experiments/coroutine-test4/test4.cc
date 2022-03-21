@@ -57,7 +57,8 @@ public:
   // coroutine calls this when it is no longer part of scheduling
   // (we won't generate an error if we try to deregister a non existing handle)
   void leave(handle_t h){
-    unique_lock<mutex>lck(mtx_);
+    // NOTE! do we need this
+    // unique_lock<mutex>lck(mtx_);
   }
   // run until 'stop' flag is set
   void operator()(){
@@ -104,7 +105,7 @@ private:
   mutable mutex mtx_;          // mutex protecting scheduling queue
 };
 
-// promise type
+// PROMISE TYPE:
 template<typename TASK>
 struct simple_promise_type{
   Scheduler*sp_;
@@ -125,7 +126,7 @@ struct simple_promise_type{
   void unhandled_exception(){}
 };
 
-// awaiter to register with scheduler
+// AWAITER: to register with scheduler
 auto schedule(Scheduler&s){
   struct awaitable{
     Scheduler&s_;
@@ -147,7 +148,7 @@ auto schedule(Scheduler&s){
   };
   return awaitable{s};
 }
-// awaiter to deregister from scheduler
+// AWAITER: to deregister from scheduler
 // (not using it in the code)
 auto leavescheduler(Scheduler&s){
   struct awaitable{
@@ -160,7 +161,7 @@ auto leavescheduler(Scheduler&s){
   };
   return awaitable{handle_t{},s};   // return awaiter with null handle (we don't have the handle yet) and a reference to
 }
-// coroutine function return object (future
+// COROUTINE FUNCTION: return object (future
 struct Task{
   using promise_type=simple_promise_type<Task>;
 };
