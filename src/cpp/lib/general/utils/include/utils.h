@@ -5,18 +5,7 @@
 #include <iostream>
 #include <utility>
 #include <tuple>
-#include <cxxabi.h>
 namespace tcs{
-
-// --- convert type to readable string
-// get a type as a string
-template<typename T>
-[[nodiscard]]std::string type2string(T t){
-  int status;
-  return std::string("(")+abi::__cxa_demangle(typeid(T).name(),0,0,&status)+")";
-}
-
-
 
 // --- min/max functions with variable return type
 // (also handling pointer values)

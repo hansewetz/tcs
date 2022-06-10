@@ -6,3 +6,4 @@ artefacts/setenv.sh
 artefacts/bin/*
 artefactslibin/*
 src/cpp/experiments/*/test1
+junk
