@@ -1,5 +1,5 @@
 #include "CmdBase.h"
-#include "CmdUsageInfo.h"
+#include "CmdHelper.h"
 #include "general/utils/strutils.h"
 #include "general/utils/utils.h"
 #include "general/utils/typeutils.h"
@@ -53,7 +53,6 @@ void CmdBase::parseCmdline(){
   if(help_)cmdusage(exitOnHelp_,"");
 
   // get some general command line parameters
-cout<<"=== debug: "<<debug_<<endl;
   if(debug_<0||debug_>3)cmderr_("invalid debug level specified");
 
   // get cmd line parameters from derived class

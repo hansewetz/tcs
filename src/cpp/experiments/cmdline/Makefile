@@ -2,8 +2,8 @@
 LOCAL_TARGET    =  test1
 LOCAL_SOTARGET  = 
 LOCAL_OBJS      = test1.o \
-                  CmdBase.o NopCmd.o DummyCmd.o \
-	          CmdUsageInfo.o
+                  CmdBase.o NopCmd.o DummyCmd.o InvalidCmd.o \
+	          CmdHelper.o
 
 # Control.
 LOCAL_LIBS      = -lutils -lboost_program_options
