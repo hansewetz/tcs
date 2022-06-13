@@ -41,8 +41,9 @@ private:
   int argc_=0;
   char**argv_=nullptr;
   bool exitOnHelp_;
+protected:
   std::function<void(std::string const&)>cmderr_;
-  
+private:
   // boost program option related parameters
   po::options_description desc_;
   po::positional_options_description posdesc_;

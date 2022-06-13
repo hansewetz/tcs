@@ -20,7 +20,7 @@ ostream&operator<<(ostream&os,CmdBase const&p){
 }
 // ctor
 CmdBase::CmdBase(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
-    progn_(progn),argc_(argc),argv_(argv),exitOnHelp_(exitOnHelp),cmderr_(cmderr){
+    progn_(progn),cmd_(argv[0]),argc_(argc),argv_(argv),exitOnHelp_(exitOnHelp),cmderr_(cmderr){
 }
 // getters
 int CmdBase::debug()const noexcept{return debug_;}
@@ -62,7 +62,8 @@ void CmdBase::parseCmdline(){
 // (uses 'desc_' and 'posdesc_' to extract usage info)
 void CmdBase::cmdusage(bool exitwhendone,string const&msg)const{
   if(msg!="")cerr<<msg<<endl;
-  tcs::cmdusage(desc_,posdesc_,progn_,cmd_,"tcs-"s+cmd_+"(1)");
+// NOTE! we have to make sure that 'progn_' only contains the name of the program - i.e, not './test1'
+  tcs::cmdusage(desc_,posdesc_,progn_,cmd_,progn_+"-"+cmd_+"(1)");
   if(exitwhendone)exit(1);
 }
 }

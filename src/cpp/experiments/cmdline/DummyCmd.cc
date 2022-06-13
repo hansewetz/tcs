@@ -16,6 +16,6 @@ void DummyCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_
     desc.add_options()("dummy",po::value<string>(&dummy_),"dummy cmd line option (mandatory)");
 }
 void DummyCmd::parseCmdlineAux(po::variables_map const&vm){
-// NOTE!    if(!vm.count("dummy"))cmderror("missing madatory 'dummy' cmd line parameter");
+  if(!vm.count("dummy"))cmderr_("missing mandatory 'dummy' cmd line parameter");
 }
 }

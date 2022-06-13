@@ -2,15 +2,7 @@
 #include "DummyCmd.h"
 #include "InvalidCmd.h"
 #include "CmdHelper.h"
-
-#include "general/utils/strutils.h"
 #include "general/utils/utils.h"
-
-#include <boost/program_options.hpp>
-
-#include <ranges>
-#include <variant>
-#include <type_traits>
 
 using namespace std;
 using namespace tcs;
@@ -43,12 +35,11 @@ int main(int argc,char*argv[]){
       exit(1);
     };
     // setup cmd objects
-    using CmdTypes=Typelist<InvalidCmd,NopCmd,DummyCmd>;                        // types only
-    auto fprocs=overloaded{ProcInvalidCmd{},ProcNopCmd{},ProcDummyCmd{}};       // function objects
+    using CmdTypes=Typelist<InvalidCmd,NopCmd,DummyCmd>;                        // types of cmd objects
+    auto fprocs=overloaded{ProcInvalidCmd{},ProcNopCmd{},ProcDummyCmd{}};       // cmd processing function objects
 
     // get variant that includes the matching sub-cmd and process it
-    bool exitOnHelp=true;
-    auto cmdobj=getMatchedCmdObject(CmdTypes(),progname,argc-1,argv+1,exitOnHelp,cmderr);
+    auto cmdobj=getMatchedCmdObject(CmdTypes(),progname,argc-1,argv+1,true,cmderr);
     visit(fprocs,cmdobj);
   }
   catch(std::exception const&exc){
