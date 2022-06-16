@@ -16,4 +16,7 @@ void NopCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_op
 }
 void NopCmd::parseCmdlineAux(po::variables_map const&vm){
 }
+void NopCmd::twmnbmAux(set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
+  //  NOTE!
+}
 }

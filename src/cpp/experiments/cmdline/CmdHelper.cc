@@ -7,12 +7,12 @@ namespace tcs{
 
 // print usage info from boost::program_options::positional_options_description
 // (and exit)
-void cmdusage(boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
+void cmdusage(bool exitwhendone,boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
            string const&progname){
-  cmdusage(desc,posdesc,progname,std::nullopt,std::nullopt);
+  cmdusage(exitwhendone,desc,posdesc,progname,std::nullopt,std::nullopt);
 
 }
-void cmdusage(boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
+void cmdusage(bool exitwhendone,boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
            string const&progname,optional<string>const&subcmd,std::optional<string>const&manpage){
   ostream&os=cerr;
   os<<"Usage: ";
@@ -37,6 +37,6 @@ void cmdusage(boost::program_options::options_description const&desc,boost::prog
   }
   os<<endl<<endl;
   os<<desc<<endl;
-  exit(1);
+  if(exitwhendone)exit(1);
 }
 }

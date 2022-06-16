@@ -1,8 +1,12 @@
 #pragma once
 #include <boost/program_options.hpp>
 #include <string>
+#include <vector>
+#include <set>
+#include <optional>
 #include <iosfwd>
 #include <functional>
+#include <memory>
 namespace po=boost::program_options;
 
 namespace tcs{
@@ -19,8 +23,10 @@ public:
   [[nodiscard]]bool help()const noexcept;
   [[nodiscard]]bool noexec()const noexcept;
   [[nodiscard]]bool print()const noexcept;
+  [[nodiscard]]bool istwmnbm()const noexcept;
   [[nodiscard]]std::string progn()const noexcept;
   [[nodiscard]]std::string cmd()const noexcept;
+  [[nodiscard]]std::vector<std::string>twmnbm()const;
 protected:
   // main alg parsing and evaluating cmd line parameters
   void parseCmdline();
@@ -32,9 +38,17 @@ protected:
   // print usage info for this command
   // (uses 'desc_' and 'posdesc_' to extract usage info)
   void cmdusage(bool exitwhendone,std::string const&msg)const;
-private:
+protected:
   virtual void print(std::ostream&os)const=0;
+  virtual void twmnbmAux(std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const=0;
 
+  // helper method used when calculating sets for twmnbm operations
+  std::set<std::string>subfromargv(std::set<std::string>const&baseset1,std::set<std::string>const&baseset2)const;
+  std::optional<std::string>lastcmd()const;
+  std::optional<std::string>lastopt()const;
+  bool twmnbmCheckCmdParam(std::string const&cmdparam,std::string const&defparam,std::set<std::string>&baseset,
+                           std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const;
+private:
   // program option related parameters
   std::string progn_;
   std::string cmd_;
@@ -45,7 +59,7 @@ protected:
   std::function<void(std::string const&)>cmderr_;
 private:
   // boost program option related parameters
-  po::options_description desc_;
+  std::shared_ptr<po::options_description>desc_;  // shared_ptr<...> so that object can be assigned to
   po::positional_options_description posdesc_;
 
   // cmd line parameter supported by base class
@@ -53,5 +67,6 @@ private:
   bool help_=false;
   bool print_=false;
   bool noexec_=false;
+  bool istwmnbm_=false;
 };
 }

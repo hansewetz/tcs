@@ -1,6 +1,9 @@
+#include "CmdLine.h"
+
 #include "NopCmd.h"
 #include "DummyCmd.h"
 #include "InvalidCmd.h"
+
 #include "CmdHelper.h"
 #include "general/utils/utils.h"
 
@@ -25,6 +28,7 @@ struct ProcDummyCmd{
 // --- (*) test main program
 int main(int argc,char*argv[]){
   try{
+/*
     // checks and adjust cmd line parameters
     if(argc<3)throw runtime_error("invalid #of cmd line parameters");
     string progname=argv[0];
@@ -34,13 +38,22 @@ int main(int argc,char*argv[]){
       cerr<<"cmdlineError called: '"<<msg<<"' ... exiting ..."<<endl;
       exit(1);
     };
+*/
+
     // setup cmd objects
     using CmdTypes=Typelist<InvalidCmd,NopCmd,DummyCmd>;                        // types of cmd objects
     auto fprocs=overloaded{ProcInvalidCmd{},ProcNopCmd{},ProcDummyCmd{}};       // cmd processing function objects
 
+    CmdLine<decltype(fprocs),CmdTypes>cmdline(argc,argv,fprocs);
+    cmdline.processCmdline();
+// NOTE!
+cout<<"done ..."<<endl;
+
+/*
     // get variant that includes the matching sub-cmd and process it
     auto cmdobj=getMatchedCmdObject(CmdTypes(),progname,argc-1,argv+1,true,cmderr);
     visit(fprocs,cmdobj);
+*/
   }
   catch(std::exception const&exc){
     cerr<<"cought exception: "<<exc.what()<<endl;

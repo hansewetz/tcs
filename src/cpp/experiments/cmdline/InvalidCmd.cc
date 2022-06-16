@@ -3,17 +3,14 @@
 using namespace std;
 namespace tcs{
 
-InvalidCmd::InvalidCmd(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
-    CmdBase(progn,argc,argv,exitOnHelp,cmderr){
-  parseCmdline();
+// debug print cmd
+ostream&operator<<(ostream&os,InvalidCmd const&c){
+  // NOTE! dump more info here
+  return os<<"InvalidCmd";
+}
+InvalidCmd::InvalidCmd(string const&progn,int argc,char*argv[]):progn_(progn),argc_(argc),argv_(argv){
 }
 bool InvalidCmd::match(string const&cmd){
   return false;
-}
-void InvalidCmd::print(ostream&os)const{
-}
-void InvalidCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc){
-}
-void InvalidCmd::parseCmdlineAux(po::variables_map const&vm){
 }
 }

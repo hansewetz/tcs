@@ -6,15 +6,16 @@
 #include <string>
 #include <functional>
 #include <variant>
-#include <iosfwd>
+#include <iostream>
+#include <type_traits>
 namespace po=boost::program_options;
 
 namespace tcs{
 // print usage info from boost::program_options::positional_options_description
 // (and exit)
-void cmdusage(boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
+void cmdusage(bool exitwhendone,boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
            std::string const&progname);
-void cmdusage(boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
+void cmdusage(bool exitwhendone,boost::program_options::options_description const&desc,boost::program_options::positional_options_description const&posdesc,
            std::string const&progname,std::optional<std::string>const&subcmd,std::optional<std::string>const&manpage);
 
 // get sub command from a type list of commands
@@ -25,18 +26,19 @@ requires requires(Ts...ts,std::string const&cmd){
 std::variant<Ts...>getMatchedCmdObjectAux(std::string const&progname,int argc,char**argv,bool exitOnHelp,std::function<void(std::string const&)>cmderr){
   // check out of bounds - if so, we did not find sub command
   if constexpr(I>=sizeof...(Ts)){
-    return InvalidCmd(progname,argc,argv,exitOnHelp,cmderr);
+    return InvalidCmd(progname,argc,argv);
   }else{
     using cmd_t=std::decay_t<NthTypeOf<I,Ts...>>;
 
     // check if currenty object in type list matches subcmd
     // (done by calling static function in command class)
-    if(cmd_t::match(argv[0])){
-      return cmd_t(progname,argc,argv,exitOnHelp,cmderr);
-    }else{
-      // increase index to check next element in type list
-      return getMatchedCmdObjectAux<I+1,Ts...>(progname,argc,argv,exitOnHelp,cmderr);
+    if constexpr(!std::is_same_v<InvalidCmd,cmd_t>){
+      if(cmd_t::match(argv[0])){
+        return cmd_t(progname,argc,argv,exitOnHelp,cmderr);
+      }
     }
+    // increase index to check next element in type list
+    return getMatchedCmdObjectAux<I+1,Ts...>(progname,argc,argv,exitOnHelp,cmderr);
   }
 }
 template<typename ...Ts>
