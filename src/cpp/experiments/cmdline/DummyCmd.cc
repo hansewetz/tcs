@@ -3,13 +3,18 @@
 using namespace std;
 namespace tcs{
 
+const string DummyCmd::CMDNAME="dummy";
+
 DummyCmd::DummyCmd(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
     CmdBase(progn,argc,argv,exitOnHelp,cmderr){
   parseCmdline();
 
 }
 bool DummyCmd::match(string const&cmd){
-  return cmd=="dummy";
+  return cmd==CMDNAME;
+}
+string DummyCmd::cmdname(){
+  return CMDNAME;
 }
 void DummyCmd::print(ostream&os)const{
 }

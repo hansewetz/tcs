@@ -31,8 +31,8 @@ bool CmdBase::help()const noexcept{return help_;}
 bool CmdBase::noexec()const noexcept{return noexec_;}
 bool CmdBase::print()const noexcept{return print_;}
 bool CmdBase::istwmnbm()const noexcept{return istwmnbm_;}
-string CmdBase::progn()const noexcept{return progn_;}
-string CmdBase::cmd()const noexcept{return  cmd_;}
+string const&CmdBase::progn()const noexcept{return progn_;}
+string const&CmdBase::cmd()const noexcept{return  cmd_;}
 
 // generate options that are allowed with current command line
 vector<string>CmdBase::twmnbm()const{

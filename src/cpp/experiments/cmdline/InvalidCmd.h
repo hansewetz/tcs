@@ -11,8 +11,10 @@ class InvalidCmd{
 public:
   friend std::ostream&operator<<(std::ostream&os,InvalidCmd const&c);
 
+  InvalidCmd(std::string const&progn);
   InvalidCmd(std::string const&progn,int argc,char*argv[]);
   [[nodiscard]]static bool match(std::string const&cmd);
+  [[nodiscard]]static std::string cmdname();
 private:
   std::string progn_;
   int argc_;

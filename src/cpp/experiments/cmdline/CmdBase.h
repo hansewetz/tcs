@@ -24,8 +24,8 @@ public:
   [[nodiscard]]bool noexec()const noexcept;
   [[nodiscard]]bool print()const noexcept;
   [[nodiscard]]bool istwmnbm()const noexcept;
-  [[nodiscard]]std::string progn()const noexcept;
-  [[nodiscard]]std::string cmd()const noexcept;
+  [[nodiscard]]std::string const&progn()const noexcept;
+  [[nodiscard]]std::string const&cmd()const noexcept;
   [[nodiscard]]std::vector<std::string>twmnbm()const;
 protected:
   // main alg parsing and evaluating cmd line parameters
