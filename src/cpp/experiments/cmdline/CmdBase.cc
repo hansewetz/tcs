@@ -90,7 +90,7 @@ void CmdBase::parseCmdline(){
   // if we have an twmnbm request then do nothing
   if(istwmnbm()){
 // NOTE! not sure if we should have this here
-    cout<<strcat(" ",twmnbm())<<endl;
+    cout<<tcs::strcat(" ",twmnbm())<<endl;
     exit(0);
   }
   // add commandline options from base class

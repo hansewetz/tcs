@@ -2,7 +2,7 @@
 LOCAL_TARGET    =  test1
 LOCAL_SOTARGET  = 
 LOCAL_OBJS      = test1.o \
-                  CmdBase.o NopCmd.o DummyCmd.o InvalidCmd.o \
+                  CmdBase.o NopCmd.o DummyCmd.o \
 	          CmdHelper.o
 
 # Control.

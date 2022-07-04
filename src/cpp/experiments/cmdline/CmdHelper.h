@@ -1,5 +1,4 @@
 #pragma once
-#include "InvalidCmd.h"
 #include "general/utils/typeutils.h"
 #include <boost/program_options.hpp>
 #include <optional>
@@ -7,6 +6,7 @@
 #include <functional>
 #include <variant>
 #include <iostream>
+#include <optional>
 #include <type_traits>
 namespace po=boost::program_options;
 
@@ -23,26 +23,25 @@ template<int I,typename ...Ts>
 requires requires(Ts...ts,std::string const&cmd){
   (Ts::match(cmd),...);
 }
-std::variant<Ts...>getMatchedCmdObjectAux(std::string const&progname,int argc,char**argv,bool exitOnHelp,std::function<void(std::string const&)>cmderr){
+std::optional<std::variant<Ts...>>getMatchedCmdObjectAux(std::string const&progname,int argc,char**argv,bool exitOnHelp,std::function<void(std::string const&)>cmderr){
   // check out of bounds - if so, we did not find sub command
   if constexpr(I>=sizeof...(Ts)){
-    return InvalidCmd(progname,argc,argv);
+    return std::nullopt;
   }else{
     using cmd_t=std::decay_t<NthTypeOf<I,Ts...>>;
 
     // check if currenty object in type list matches subcmd
     // (done by calling static function in command class)
-    if constexpr(!std::is_same_v<InvalidCmd,cmd_t>){
-      if(cmd_t::match(argv[0])){
-        return cmd_t(progname,argc,argv,exitOnHelp,cmderr);
-      }
+    if(cmd_t::match(argv[0])){
+      return cmd_t(progname,argc,argv,exitOnHelp,cmderr);
+    }else{
+      // increase index to check next element in type list
+      return getMatchedCmdObjectAux<I+1,Ts...>(progname,argc,argv,exitOnHelp,cmderr);
     }
-    // increase index to check next element in type list
-    return getMatchedCmdObjectAux<I+1,Ts...>(progname,argc,argv,exitOnHelp,cmderr);
   }
 }
 template<typename ...Ts>
-std::variant<Ts...>getMatchedCmdObject(Typelist<Ts...>types,std::string const&progname,int argc,char**argv,
+std::optional<std::variant<Ts...>>getMatchedCmdObject(Typelist<Ts...>types,std::string const&progname,int argc,char**argv,
                                   bool exitOnHelp,std::function<void(std::string const&)>cmderr){
   return getMatchedCmdObjectAux<0,Ts...>(progname,argc,argv,exitOnHelp,cmderr);
 }

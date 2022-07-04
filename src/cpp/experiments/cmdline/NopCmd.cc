@@ -15,6 +15,9 @@ bool NopCmd::match(string const&cmd){
 string NopCmd::cmdname(){
   return CMDNAME;
 }
+string NopCmd::cmddescr(){
+  return "the "s+CMDNAME+" is a nop operation and does not execute anything";
+}
 void NopCmd::print(ostream&os)const{
 }
 void NopCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc){
@@ -22,6 +25,5 @@ void NopCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_op
 void NopCmd::parseCmdlineAux(po::variables_map const&vm){
 }
 void NopCmd::twmnbmAux(set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
-  //  NOTE!
 }
 }

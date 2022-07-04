@@ -16,6 +16,9 @@ bool DummyCmd::match(string const&cmd){
 string DummyCmd::cmdname(){
   return CMDNAME;
 }
+string DummyCmd::cmddescr(){
+  return "the "s+CMDNAME+" is a dummy operation that is meant to be used for quick testing of commands";
+}
 void DummyCmd::print(ostream&os)const{
 }
 void DummyCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc){

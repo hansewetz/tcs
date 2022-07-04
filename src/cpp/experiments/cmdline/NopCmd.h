@@ -14,6 +14,7 @@ public:
   NopCmd(std::string const&progn,int argc,char*argv[],bool exitOnHelp,std::function<void(std::string const&)>cmderr);
   [[nodiscard]]static bool match(std::string const&cmd);
   [[nodiscard]]static std::string cmdname();
+  [[nodiscard]]static std::string cmddescr();
 private:
   virtual void print(std::ostream&os)const override;
   virtual void addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc)override;
