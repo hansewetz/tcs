@@ -10,6 +10,7 @@ NOTE! TODO
 #include "general/utils/typeutils.h"
 #include "general/utils/stringconst.h"
 #include "general/utils/strutils.h"
+#include <boost/algorithm/string/replace.hpp>
 #include <variant>
 #include <iostream>
 #include <vector>
@@ -50,7 +51,7 @@ public:
 
     // check two cases: (1) we have sub-command, (2) no sub-command
     if(hassubcmd()){
-      cmdobj_=getMatchedCmdObject(CmdTypes(),argv_[0],argc_-1,&argv_[1],true,cmderr_);
+      cmdobj_=getMatchedCmdObject(CmdTypes(),progname(),argc_-1,&argv_[1],true,cmderr_);
       if(cmdobj_==std::nullopt)cmderr_(std::string("invalid/unknown sub-command, ")+tryhelpstr());
     }else{
       // check for no cmd line options first
@@ -74,20 +75,17 @@ public:
     // at this point we know we have a sub command
     visit(f_,cmdobj_.value());
   }
-  // get all commands as strings
-  std::vector<std::string>const&cmdnames()const{
-    return cmdnames_;
-  }
-  // get all command descriptins as strings
-  std::vector<std::string>const&cmddescr()const{
-    return cmddescr_;
+  // get program name
+  std::string progname()const{
+    // NOTE! we should strip the path from the program
+    return argv_[0];
   }
   // quick way of printing info for about commands (cmd - cmd-descr)
   // (if user wants to format the info herself, she can get the command descriptions and then print)
   void printCmdDescr(std::ostream&os)const{
     std::cout<<"---------------------------------------------------------"<<std::endl;
-    os<<BOLD<<"[-h|--help]: print this info"<<std::endl;
-    os<<BOLD<<"[-v|--version]: print version of program"<<std::endl;
+    os<<BOLD<<"[-h|--help]"<<UNBOLD<<": print this info"<<std::endl;
+    os<<BOLD<<"[-v|--version]"<<UNBOLD<<": print version of program"<<std::endl;
     auto itdescr=begin(cmddescr_);
     for(auto&&name:cmdnames_){
       os<<BOLD<<name<<UNBOLD<<": "<<*itdescr++<<std::endl;
@@ -115,16 +113,25 @@ private:
   }
   // do we have a sub command
   bool hassubcmd()const{
-// NOTE! should check if we can do this better
-    if(argc_<=1)return false;          // if no cmd line parameters, then no sub command
-    if(argv_[1][0]=='-')return false;  // if first cmd line parameter starts with '-' then no sub command
-    if(!strcmp(argv_[1],"twmnbm"))return false;  // if first cmd line parameter is 'twmnbm' treat is as special
+    if(argc_<=1)return false;                // if no cmd line parameters, then no sub command
+    for(auto&&[c,m]:printAndExitMainOpts_){  // check if first option is part of the main program options
+      if(c==argv_[1])return false;
+    }
     return true;
   }
+  // get visible main program options
+  std::vector<std::string>getVisibleMainOpts()const{
+    std::vector<std::string>ret;
+    for(auto&&[c,m]:printAndExitMainOpts_){
+      auto&&[func,visible]=m;
+      if(visible)ret.push_back(c);
+    }
+    return ret;
+  }
   // helper - returning a string: 'try: <progname> --help'
-  // (witgh the command in BOLD
+  // (with the command in BOLD
   std::string tryhelpstr()const{
-    return "try: "+BOLD+argv_[0]+" --help"+UNBOLD;
+    return "try: "+BOLD+progname()+" --help"+UNBOLD;
   }
   // helper options to main program that prints somethoing and then exits
   void printHelpAndExit()const{
@@ -136,13 +143,56 @@ private:
     exit(0);
   }
   void printTwmmnbmAndExit()const{
-// NOTE! hard codeded names of options
-    std::vector<std::string>opts{"-h","--help","-v","--version"};
+    auto opts=getVisibleMainOpts();
     copy(begin(cmdnames_),end(cmdnames_),back_inserter(opts));
     std::cout<<tcs::strcat(" ",opts)<<std::endl;
     exit(0);
   }
+  void printTwmmnbmBashAndExit()const{
+    std::string str1=R"(#/usr/bin/env bash
+  
+# join all elemnts in a bash array with a space between elements
+function join {
+  local IFS="$1"; shift; echo "$*";
+}   
+#   
+_YYYY_completions()
+{ 
+    local cur 
+    
+    cur=${COMP_WORDS[COMP_CWORD]}
+  
+    case ${COMP_CWORD} in
+        1)  # main command
+            COMPREPLY=($(compgen -W "`YYYY twmnbm`" -- ${cur}))
+            ;;
+        2)  # sub-command (load, run, proglist ...)
+            # (allow all optins for current sub-command)
+            case ${COMP_WORDS[1]} in
+                XXXX)
+                COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm`" -- ${cur}))
+            esac
+            ;;
+        *)  # we are filling in options to sub-command
+            # (here we need to analyze and calculate what optikons/file can be selected)
+            cmdtail=$(join " " ${COMP_WORDS[@]:2})
+            COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${cmdtail}`" -- ${cur}))
+            ;;
+    esac
+}
+# process YYYY command line completion
+complete -F _YYYY_completions YYYY
+)";
+    // replace XXXX with the sub-commands we support (separated by '|')
+    std::string cmds=strcat("|",cmdnames_);   // replace XXXX with 'cmds'
+    boost::replace_all(str1,"XXXX",cmds);
 
+    // replace YYYY with name of program
+    boost::replace_all(str1,"YYYY",progname());
+
+    std::cout<<str1<<std::endl;
+    exit(0);
+  }
   // private data
   int argc_;
   char**argv_;
@@ -166,7 +216,8 @@ private:
     {"--help",{[&]{printHelpAndExit();},true}},
     {"-v",{[&]{printVersionAndExit();},true}},
     {"--version",{[&]{printVersionAndExit();},true}},
-    {"twmnbm",{[&]{printTwmmnbmAndExit();},false}}
+    {"twmnbm",{[&]{printTwmmnbmAndExit();},false}},
+    {"twmnbm-bash",{[&]{printTwmmnbmBashAndExit();},false}}
   };
 };
 }

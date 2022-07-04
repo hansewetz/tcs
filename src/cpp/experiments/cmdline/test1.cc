@@ -4,11 +4,6 @@
 #include "DummyCmd.h"
 
 #include "CmdHelper.h"
-#include "general/utils/utils.h"
-#include "general/utils/strutils.h"
-
-// NOTE!
-#include "general/utils/typeutils.h"
 
 using namespace std;
 using namespace tcs;
