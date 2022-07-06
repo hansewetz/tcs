@@ -1,0 +1,7 @@
+all: test1-completion.bash
+
+test1-completion.bash: test1
+	./test1 twmnbm-bash > $@
+
+clean:
+	rm -f test1-completion.bash

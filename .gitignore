@@ -8,3 +8,4 @@ artefactslibin/*
 src/cpp/experiments/*/test1
 junk
 src/cpp/experiments/cmdline/test1-completion.bash
+src/cpp/experiments/cmdline/test1-completion

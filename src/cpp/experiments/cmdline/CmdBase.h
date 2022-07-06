@@ -68,5 +68,6 @@ private:
   bool print_=false;
   bool noexec_=false;
   bool istwmnbm_=false;
+  int twmnbmSpacesAtEnd_=-1;
 };
 }

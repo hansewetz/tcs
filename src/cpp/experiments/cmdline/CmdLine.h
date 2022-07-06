@@ -18,6 +18,7 @@ NOTE! TODO
 #include <map>
 #include <optional>
 #include <string>
+#include <filesystem>
 #include <stdlib.h>
 namespace tcs{
 
@@ -58,7 +59,7 @@ public:
       if(argc_==1){
         cmderr_(std::string("no command line option specified, "+tryhelpstr()));
       }
-      // check for cmd line optiknos to main that prints and then exits (help, version etc.)
+      // check for cmd line options to main that prints and then exits (help, version etc.)
       for(auto&&[c,m]:printAndExitMainOpts_){
         auto&&[func,visible]=m;
         if(c==argv_[1])func();
@@ -77,8 +78,7 @@ public:
   }
   // get program name
   std::string progname()const{
-    // NOTE! we should strip the path from the program
-    return argv_[0];
+    return std::filesystem::path(argv_[0]).filename();
   }
   // quick way of printing info for about commands (cmd - cmd-descr)
   // (if user wants to format the info herself, she can get the command descriptions and then print)
@@ -149,6 +149,7 @@ private:
     exit(0);
   }
   void printTwmmnbmBashAndExit()const{
+
     std::string str1=R"(#/usr/bin/env bash
   
 # join all elemnts in a bash array with a space between elements
@@ -160,6 +161,10 @@ _YYYY_completions()
 { 
     local cur 
     
+    # check if we have a space at end of cmd line
+    SPACE_AT_END=0;
+    if [[ "${COMP_LINE: -1}" == " " ]]; then SPACE_AT_END=1; fi
+
     cur=${COMP_WORDS[COMP_CWORD]}
   
     case ${COMP_CWORD} in
@@ -170,13 +175,14 @@ _YYYY_completions()
             # (allow all optins for current sub-command)
             case ${COMP_WORDS[1]} in
                 XXXX)
-                COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm`" -- ${cur}))
+                COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${SPACE_AT_END}`" -- ${cur}))
             esac
             ;;
         *)  # we are filling in options to sub-command
             # (here we need to analyze and calculate what optikons/file can be selected)
             cmdtail=$(join " " ${COMP_WORDS[@]:2})
-            COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${cmdtail}`" -- ${cur}))
+
+            COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${SPACE_AT_END} ${cmdtail}`" -- ${cur})) # NOTE! must pass correct parameter to --twmnbm
             ;;
     esac
 }

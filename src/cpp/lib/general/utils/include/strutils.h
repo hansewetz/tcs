@@ -113,10 +113,8 @@ template<typename C=std::vector<std::string>>
 
 // convert a string to a number
 // (return nullopt oif conversion cannot be done)
-// TODO
-//[[nodiscard]]std::optional<long>string2long(std::string const&s);
-//[[nodiscard]]std::optional<unsigned long>string2ulong(std::string const&s);
-// ---
+[[nodiscard]]std::optional<long>string2long(std::string const&s);
+[[nodiscard]]std::optional<unsigned long>string2ulong(std::string const&s);
 
 // --- string/file related functions
 // read a file into a string

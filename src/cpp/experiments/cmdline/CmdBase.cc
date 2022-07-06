@@ -21,9 +21,17 @@ ostream&operator<<(ostream&os,CmdBase const&p){
 // ctor
 CmdBase::CmdBase(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
     progn_(progn),cmd_(argv[0]),argc_(argc),argv_(argv),exitOnHelp_(exitOnHelp),cmderr_(cmderr){
-  // check if we have a twmnbm cmd line parameter
+
+  // check if we have a twmnbm cmd line parameter - if so, process it manually
+// NOTE! should cleanup this a little
   auto it=find_if(&argv_[1],&argv_[argc_],[](char const*s){return strcmp(s,"--twmnbm")==0;});
-  istwmnbm_=it!=&argv_[argc_];
+  if(it!=&argv_[argc_]){
+    if(it==&argv_[argc_-1])cmderr_("--twmnbm requires a parameter");
+    auto twmnbmVal=string2ulong(it[1]);
+    if(!twmnbmVal)cmderr_("--twmnbm requires an unsigned integer parameter");
+    twmnbmSpacesAtEnd_=twmnbmVal.value();
+    istwmnbm_=true;
+  }
 }
 // getters
 int CmdBase::debug()const noexcept{return debug_;}
@@ -38,13 +46,17 @@ string const&CmdBase::cmd()const noexcept{return  cmd_;}
 vector<string>CmdBase::twmnbm()const{
   // first check if last cmd line parameter requires a parameter
   // (this is custom code for base class command line parameters)
-  auto lstcmd=lastcmd();
-  if(lstcmd){
-    if(lstcmd.value()=="--debug")return {"0","1","2"};
+
+  // handle twmnbm for '--debug'
+// NOTE! should make this better
+//       encapsulate it into a function that can be used for other options that have a fixed set of parameters
+  if(lastcmd()&&lastcmd().value()=="--debug"){                       // if we have '--debug' option ...
+    if(lastopt()==std::nullopt)return {"0","1","2"};                 // if no parameter to '--debug'
+    if(istwmnbm_&&twmnbmSpacesAtEnd_==0)return {lastopt().value()};  // if '--debug 0' with no space after '0' (or 1 or 2)
   }
   // if here, last command does not require a parameter
-  // remove cmd line parameters from return value that we already hvae
-  set<string>baseset={"--help","--debug","--print","--noexec"};  // all valid options
+  // remove cmd line parameters from return value that we already have
+  set<string>baseset={"--help","--debug","--print","--noexec"};
   auto retset=subfromargv(baseset,{});
 
   // let derived class fill in return value
@@ -99,7 +111,6 @@ void CmdBase::parseCmdline(){
   desc_->add_options()("help,h",po::bool_switch(&help_),"help (optional)");
   desc_->add_options()("noexec",po::bool_switch(&noexec_),"if set do not execute operation (optional)");
   desc_->add_options()("print,p",po::bool_switch(&print_),"print all command line parameters (optional)");
-  desc_->add_options()("twmnbm",po::bool_switch(&istwmnbm_),"generate all command line parameters for a sub-command");
 
   // add positional commandline options from base class
   // ...
@@ -125,7 +136,6 @@ void CmdBase::parseCmdline(){
 // (uses 'desc_' and 'posdesc_' to extract usage info)
 void CmdBase::cmdusage(bool exitwhendone,string const&msg)const{
   if(msg!="")cerr<<msg<<endl;
-// NOTE! we have to make sure that 'progn_' only contains the name of the program - i.e, not './test1'
   tcs::cmdusage(exitwhendone,*desc_,posdesc_,progn_,cmd_,progn_+"-"+cmd_+"(1)");
 }
 // check cmd line parametr for twmnbm

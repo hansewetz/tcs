@@ -1,6 +1,8 @@
 #include "general/utils/strutils.h"
 #include <iterator>
+#include "boost/lexical_cast.hpp"
 #include <sstream>
+#include <optional>
 #include <cctype>
 using namespace std;
 namespace tcs{
@@ -19,5 +21,24 @@ string toupper(string const&s){
 // create a lowercase string from a string
 string tolower(string const&s){
   return xformstr(s,::tolower);
+}
+optional<long>string2long(string const&s){
+  std::optional<long>ret;
+  try{
+    ret=boost::lexical_cast<long>(s);
+  }
+  catch(...){
+  }
+  return ret;
+
+}
+optional<unsigned long>string2ulong(string const&s){
+  std::optional<unsigned long>ret;
+  try{
+    ret=boost::lexical_cast<unsigned long>(s);
+  }
+  catch(...){
+  }
+  return ret;
 }
 }
