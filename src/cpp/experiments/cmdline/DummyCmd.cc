@@ -5,8 +5,8 @@ namespace tcs{
 
 const string DummyCmd::CMDNAME="dummy";
 
-DummyCmd::DummyCmd(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
-    CmdBase(progn,argc,argv,exitOnHelp,cmderr){
+DummyCmd::DummyCmd(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr,bool printOnPrint):
+    CmdBase(progn,argc,argv,exitOnHelp,cmderr,printOnPrint){
   parseCmdline();
 
 }
@@ -19,7 +19,8 @@ string DummyCmd::cmdname(){
 string DummyCmd::cmddescr(){
   return "the "s+CMDNAME+" is a dummy operation that is meant to be used for quick testing of commands";
 }
-void DummyCmd::print(ostream&os)const{
+void DummyCmd::printAux(ostream&os)const{
+  os<<"dummy: "<<dummy_<<endl;
 }
 void DummyCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc){
     desc.add_options()("dummy",po::value<string>(&dummy_),"dummy cmd line option (mandatory)");
@@ -29,10 +30,9 @@ void DummyCmd::parseCmdlineAux(po::variables_map const&vm){
 }
 void DummyCmd::twmnbmAux(set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
   // check all cmd line parameters
-  if(twmnbmCheckCmdParam("--dummy","dummy-parameter",baseset,lstcmd,lstopt))return;
+  if(twmnbmCheckCmdParam("--dummy","<dummy-parameter>",baseset,lstcmd,lstopt))return;
 
   // if here we'll just merge in our own parameters with base class parameters
-  set<string>argset{"--dummy"};
-  baseset=subfromargv(baseset,argset);
+  baseset=subfromargv(baseset,{"--dummy"});
 }
 }

@@ -16,7 +16,7 @@ public:
   friend std::ostream&operator<<(std::ostream&os,CmdBase const&p);
 
   // ctor
-  CmdBase(std::string const&progn,int argc,char*argv[],bool exitOnHelp,std::function<void(std::string const&)>cmderr);
+  CmdBase(std::string const&progn,int argc,char*argv[],bool exitOnHelp,std::function<void(std::string const&)>cmderr,bool printOnPrint);
  
   // getters
   [[nodiscard]]int debug()const noexcept;
@@ -39,7 +39,7 @@ protected:
   // (uses 'desc_' and 'posdesc_' to extract usage info)
   void cmdusage(bool exitwhendone,std::string const&msg)const;
 protected:
-  virtual void print(std::ostream&os)const=0;
+  virtual void printAux(std::ostream&os)const=0;
   virtual void twmnbmAux(std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const=0;
 
   // helper method used when calculating sets for twmnbm operations
@@ -55,6 +55,7 @@ private:
   int argc_=0;
   char**argv_=nullptr;
   bool exitOnHelp_;
+  bool printOnPrint_;
 protected:
   std::function<void(std::string const&)>cmderr_;
 private:

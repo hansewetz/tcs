@@ -9,28 +9,28 @@ namespace tcs{
 
 // debug print operator
 ostream&operator<<(ostream&os,CmdBase const&p){
-  os<<"progn: "<<p.progn()<<", cmd: "<<p.cmd()<<", argv: [";
-  vector<string>vargv(p.argv_,p.argv_+p.argc_);
-  os<<tcs::strcat(", ",vargv)<<"], ";
-  os<<"debug: "<<p.debug()<<", noexec: "<<boolalpha<<p.noexec()<<", print: "<<p.print()<<", help: "<<p.help()<<", ";
-  os<<"[";
-  p.print(os);
-  os<<"]";
+  os<<"----- (begin) cmd line options -----"<<endl;
+  os<<"debug: "<<p.debug()<<endl;
+  os<<"help: "<<boolalpha<<p.help()<<endl;
+  os<<"print: "<<boolalpha<<p.print()<<endl;
+  os<<"noexec: "<<boolalpha<<p.noexec()<<endl;
+  p.printAux(os);
+  os<<"----- (end) cmd line options -----"<<endl;
   return os;
 }
 // ctor
-CmdBase::CmdBase(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr):
-    progn_(progn),cmd_(argv[0]),argc_(argc),argv_(argv),exitOnHelp_(exitOnHelp),cmderr_(cmderr){
+CmdBase::CmdBase(string const&progn,int argc,char*argv[],bool exitOnHelp,function<void(string const&)>cmderr,bool printOnPrint):
+    progn_(progn),cmd_(argv[0]),argc_(argc),argv_(argv),exitOnHelp_(exitOnHelp),cmderr_(cmderr),printOnPrint_(printOnPrint){
 
   // check if we have a twmnbm cmd line parameter - if so, process it manually
-// NOTE! should cleanup this a little
-  auto it=find_if(&argv_[1],&argv_[argc_],[](char const*s){return strcmp(s,"--twmnbm")==0;});
-  if(it!=&argv_[argc_]){
-    if(it==&argv_[argc_-1])cmderr_("--twmnbm requires a parameter");
-    auto twmnbmVal=string2ulong(it[1]);
-    if(!twmnbmVal)cmderr_("--twmnbm requires an unsigned integer parameter");
-    twmnbmSpacesAtEnd_=twmnbmVal.value();
+  // usage: --twmnbm <nspace>
+  // where <nspace> is 0 if there is no space at end of command line and 1 if there is a space
+  // (for some cmd line parameters, it matters if there is a space. For example, for '--debug 1' if there is a space)
+  // (after '1' then the suggestins we generate will be '--noexec' etc. If there is no space, the suggestion we generate is '1'.)
+  auto twmnbmSpacesAtEnd=checkAndGetCmdlineParam<int>(argc_,argv_,"--twmnbm",cmderr_);
+  if(twmnbmSpacesAtEnd){
     istwmnbm_=true;
+    twmnbmSpacesAtEnd_=twmnbmSpacesAtEnd.value();
   }
 }
 // getters
@@ -125,12 +125,16 @@ void CmdBase::parseCmdline(){
 
   // check if 'help' was specified
   if(help_)cmdusage(exitOnHelp_,"");
- 
+
   // get some general command line parameters
   if(debug_<0||debug_>3)cmderr_("invalid debug level specified, debug level must be 0, 1 or 2");
 
   // get cmd line parameters from derived class
   parseCmdlineAux(vm);
+
+  // check if we should print cmd line parameters
+  if(print_&&printOnPrint_)cout<<*this;
+ 
 }
 // print usage info for this command
 // (uses 'desc_' and 'posdesc_' to extract usage info)
@@ -140,8 +144,8 @@ void CmdBase::cmdusage(bool exitwhendone,string const&msg)const{
 }
 // check cmd line parametr for twmnbm
 bool CmdBase::twmnbmCheckCmdParam(string const&cmdparam,string const&defparam,set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
-  if(!lstcmd||lstcmd.value()!=cmdparam)return false;
-  if(!lstopt)baseset={defparam};
-  return true;
+  if(!lstcmd||lstcmd.value()!=cmdparam)return false;   // check if last cmd parameter == lstcmd, if not, then return false
+  if(!lstopt)baseset={defparam};                       // we now have the lstcmd, if last option is not set, then set 'baseset' to defparam
+  return true;                                         // return true sionce we have a match
 }
 }

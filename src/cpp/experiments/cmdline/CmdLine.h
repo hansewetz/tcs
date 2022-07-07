@@ -37,10 +37,11 @@ public:
   using CmdTypes=Typelist<CTs...>;
 
   // ctors
-  CmdLine(int argc,char*argv[],F const&f,std::string const&version):
+  CmdLine(int argc,char*argv[],F const&f,std::string const&version,bool printOnPrint):
       argc_(argc),argv_(argv),f_(f),
       cmdobj_(std::nullopt),
       version_(version),
+      printOnPrint_(printOnPrint),
       cmdnames_(getCmdnamesFromTypes<CTs...>()), // get cmd names from all sub commands
       cmddescr_(getCmddescrFromTypes<CTs...>())  // get cmd descriptions from all sub commands
   {
@@ -52,7 +53,7 @@ public:
 
     // check two cases: (1) we have sub-command, (2) no sub-command
     if(hassubcmd()){
-      cmdobj_=getMatchedCmdObject(CmdTypes(),progname(),argc_-1,&argv_[1],true,cmderr_);
+      cmdobj_=getMatchedCmdObject(CmdTypes(),progname(),argc_-1,&argv_[1],true,cmderr_,printOnPrint_);
       if(cmdobj_==std::nullopt)cmderr_(std::string("invalid/unknown sub-command, ")+tryhelpstr());
     }else{
       // check for no cmd line options first
@@ -207,6 +208,7 @@ complete -F _YYYY_completions YYYY
   std::vector<std::string>cmdnames_;                  // names of all commands
   std::vector<std::string>cmddescr_;                  // names of all commands
   std::string version_;                               // version of program
+  bool printOnPrint_;                                 // print cmd line parameters when '--print' is specified
   std::function<void(std::string)>cmderr_=defaultCmderr;    // NOTE! hard coded
 
   // dynamic data
