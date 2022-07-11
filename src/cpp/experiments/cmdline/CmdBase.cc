@@ -5,6 +5,7 @@
 #include "general/utils/typeutils.h"
 #include <iostream>
 using namespace std;
+namespace fs=std::filesystem;
 namespace tcs{
 
 // debug print operator
@@ -147,5 +148,59 @@ bool CmdBase::twmnbmCheckCmdParam(string const&cmdparam,string const&defparam,se
   if(!lstcmd||lstcmd.value()!=cmdparam)return false;   // check if last cmd parameter == lstcmd, if not, then return false
   if(!lstopt)baseset={defparam};                       // we now have the lstcmd, if last option is not set, then set 'baseset' to defparam
   return true;                                         // return true sionce we have a match
+}
+// generate file proposal for an argument
+bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string const&cmdparam,
+                                      set<string>&baseset,optional<string>const&lstcmd,
+                                      optional<string>const&lstopt)const{
+
+  // if last cmd line option is not 'cmdparam' then add it to proposed options
+  if(!lstcmd||lstcmd.value()!=cmdparam){
+    baseset=subfromargv(baseset,{cmdparam});
+    return false;
+  }
+  // if we have parameter to 'cmdparam' and there is a space after the parameters we are done
+  // (we don't need to add something to baseset)
+  if(lstopt&&twmnbmSpacesAtEnd_>0){
+    return true;
+  }
+  // determine directory from which to generate suggested file names
+  fs::path basedir="./";        // if we don't have an option to '--dummy' then directory for suggested files is current directory
+  fs::path userpath;
+  if(lstopt){
+    // get user specified path and what filesystem determines to be the filename (could be a dircetory)
+    basedir=lstopt.value();
+    auto fname=basedir.filename();
+
+    // track if we should strip filename from userpath
+    // (if we have a directory as parent, then use parent dir as 'basedir' to list replies from)
+    std::error_code ec;
+    if(!(fname=="."||fname==".."||fs::is_directory(basedir,ec))){
+      basedir.remove_filename();
+    }
+  }
+  // check that 'basedir' is actually a directory
+  std::error_code ec_isdir;
+  if(!fs::is_directory(basedir,ec_isdir)||ec_isdir){   // should also check for link to dir
+    return false;
+  }
+  // generate files in 'basedir' directory
+  baseset.clear();
+  std::error_code dir_ec;
+  auto diriterator=fs::directory_iterator(basedir,dir_ec);
+  if(dir_ec)return false;               // we migh have been dealing with a basdir that is syntactically correct but doe snot match anything in the file system
+  for (auto&&entry:diriterator){
+    auto pentry=entry.path();
+
+    // check if we have a directory
+    if(isfile&&fs::is_directory(pentry,ec_isdir)&&!ec_isdir){
+      pentry+="/*";   // mark that we don't want to expand this directory as teh final result
+    }
+    // filter entries on full or partial filename (option to 'cmdparam')
+    // (not actually needed since; 'compgen' will do this for us)
+
+    baseset.insert(pentry.string());
+  }
+  return true;
 }
 }

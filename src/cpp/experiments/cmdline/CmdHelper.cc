@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 using namespace std;
+namespace fs=std::filesystem;
 namespace tcs{
 
 // print usage info from boost::program_options::positional_options_description

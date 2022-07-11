@@ -24,7 +24,7 @@ template<int I,typename ...Ts>
 requires requires(Ts...ts,std::string const&cmd){
   (Ts::match(cmd),...);
 }
-std::optional<std::variant<Ts...>>getMatchedCmdObjectAux(std::string const&progname,int argc,char**argv,bool exitOnHelp,std::function<void(std::string const&)>cmderr,bool printOnPrint){
+[[nodiscard]]std::optional<std::variant<Ts...>>getMatchedCmdObjectAux(std::string const&progname,int argc,char**argv,bool exitOnHelp,std::function<void(std::string const&)>cmderr,bool printOnPrint){
   // check out of bounds - if so, we did not find sub command
   if constexpr(I>=sizeof...(Ts)){
     return std::nullopt;
@@ -42,7 +42,7 @@ std::optional<std::variant<Ts...>>getMatchedCmdObjectAux(std::string const&progn
   }
 }
 template<typename ...Ts>
-std::optional<std::variant<Ts...>>getMatchedCmdObject(Typelist<Ts...>types,std::string const&progname,int argc,char**argv,
+[[nodiscard]]std::optional<std::variant<Ts...>>getMatchedCmdObject(Typelist<Ts...>types,std::string const&progname,int argc,char**argv,
                                   bool exitOnHelp,std::function<void(std::string const&)>cmderr,
                                   bool printOnPrint){
   return getMatchedCmdObjectAux<0,Ts...>(progname,argc,argv,exitOnHelp,cmderr,printOnPrint);
@@ -54,7 +54,7 @@ std::optional<std::variant<Ts...>>getMatchedCmdObject(Typelist<Ts...>types,std::
 // (typically the 'cmderr' function would print a messsage and exit.)
 // (if it doe snot exit, a std::nullopt is returned)
 template<typename T>
-std::optional<T>checkAndGetCmdlineParam(int argc,char**argv,std::string const&cmd,std::function<void(std::string const&)>cmderr){
+[[nodiscard]]std::optional<T>checkAndGetCmdlineParam(int argc,char**argv,std::string const&cmd,std::function<void(std::string const&)>cmderr){
   auto it=std::find_if(&argv[1],&argv[argc],[cmd](char const*s){return strcmp(s,cmd.data())==0;});
   // check that we have cmd + val as part of the cmd line
   if(it!=&argv[argc]){
