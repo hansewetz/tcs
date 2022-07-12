@@ -1,11 +1,4 @@
 #pragma once
-
-/*
-NOTE! TODO
-- add twmnbm as a command object so we can print usage info for the program
-- add a bash script so we can do bash command interpolation
-- add support for getting files/dirs when we have an empty string or when we have the start of a file/dir
-*/
 #include "CmdHelper.h"
 #include "general/utils/typeutils.h"
 #include "general/utils/stringconst.h"

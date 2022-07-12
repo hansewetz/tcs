@@ -1,9 +1,6 @@
-#include "CmdLine.h"
-
-#include "NopCmd.h"
-#include "DummyCmd.h"
-
-#include "CmdHelper.h"
+#include "general/cmdline/CmdLine.h"
+#include "general/cmdline/NopCmd.h"
+#include "general/cmdline/DummyCmd.h"
 
 using namespace std;
 using namespace tcs;

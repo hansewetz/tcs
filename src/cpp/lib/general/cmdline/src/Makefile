@@ -1,11 +1,11 @@
 # To be built
-LOCAL_TARGET    =  test1 
-LOCAL_SOTARGET  = 
-LOCAL_OBJS      = test1.o
+LOCAL_TARGET    =
+LOCAL_SOTARGET  = $(TCS_LIBDIR)/libcmdline.so
+LOCAL_OBJS      = CmdBase.o CmdHelper.o DummyCmd.o NopCmd.o
 
 # Control.
-LOCAL_LIBS      = -lcmdline -lutils -lboost_program_options
-LOCAL_LIBPATH   = -L$(TCS_LIBDIR)
+LOCAL_LIBS      = 
+LOCAL_LIBPATH   = 
 LOCAL_INCPATH   = 
 LOCAL_DEFINES   = 
 LOCAL_CXXFLAGS  =
