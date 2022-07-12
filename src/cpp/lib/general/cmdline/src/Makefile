@@ -1,7 +1,8 @@
 # To be built
 LOCAL_TARGET    =
 LOCAL_SOTARGET  = $(TCS_LIBDIR)/libcmdline.so
-LOCAL_OBJS      = CmdBase.o CmdHelper.o DummyCmd.o NopCmd.o
+LOCAL_OBJS      = CmdBase.o CmdHelper.o DummyCmd.o NopCmd.o \
+	          ProcNopCmd.o ProcDummyCmd.o
 
 # Control.
 LOCAL_LIBS      = 
