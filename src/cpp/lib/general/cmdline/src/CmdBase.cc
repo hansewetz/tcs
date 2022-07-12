@@ -104,10 +104,10 @@ void CmdBase::parseCmdline(){
   }
   // add commandline options from base class
   desc_=make_shared<po::options_description>();
-  desc_->add_options()("debug,d",po::value<int>(&debug_),"debug level 0, 1, 2, default: 1 (optional)");
-  desc_->add_options()("help,h",po::bool_switch(&help_),"help (optional)");
+  desc_->add_options()("debug",po::value<int>(&debug_),"debug level 0, 1, 2, default: 1 (optional)");
+  desc_->add_options()("help",po::bool_switch(&help_),"help (optional)");
   desc_->add_options()("noexec",po::bool_switch(&noexec_),"if set do not execute operation (optional)");
-  desc_->add_options()("print,p",po::bool_switch(&print_),"print all command line parameters (optional)");
+  desc_->add_options()("print",po::bool_switch(&print_),"print all command line parameters (optional)");
 
   // add positional commandline options from base class
   // ...
