@@ -43,12 +43,18 @@ protected:
   virtual void twmnbmAux(std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const=0;
 
   // helper method used when calculating sets for twmnbm operations
-  std::set<std::string>subfromargv(std::set<std::string>const&baseset1,std::set<std::string>const&baseset2)const;
-  std::optional<std::string>lastcmd()const;
-  std::optional<std::string>lastopt()const;
-  [[nodiscard]]bool twmnbmCheckCmdParam(std::string const&cmdparam,std::string const&defparam,std::set<std::string>&baseset,
+  [[nodiscard]]std::set<std::string>subfromargv(std::set<std::string>const&baseset1,std::set<std::string>const&baseset2)const;
+  [[nodiscard]]std::optional<std::string>lastcmd()const;
+  [[nodiscard]]std::optional<std::string>lastopt()const;
+
+  [[nodiscard]]bool twmnbmCheckCmdParam(std::string cmdparam,std::string const&defparam,std::set<std::string>&baseset,
                            std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const;
-  [[nodiscard]]bool twmnbmCheckCmdParamDirFile(bool isfile,std::string const&cmdparam,std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const;
+
+  [[nodiscard]]bool twmnbmCheckCmdParamStrlist(std::string cmdparam,std::set<std::string>const&strlist,std::set<std::string>&baseset,
+                           std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const;
+
+  [[nodiscard]]bool twmnbmCheckCmdParamDirFile(bool isfile,std::string cmdparam,std::set<std::string>&baseset,
+                           std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const;
 private:
   // program option related parameters
   std::string progn_;

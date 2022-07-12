@@ -5,6 +5,8 @@
 #include <iostream>
 #include <utility>
 #include <tuple>
+#include <set>
+#include <vector>
 namespace tcs{
 
 // --- min/max functions with variable return type
@@ -55,4 +57,15 @@ void push_vals(C&c,std::tuple<Ts...>const&tu){
   };
   fp(std::make_index_sequence<LEN>());
 }
+
+
+// conversion between collections
+template<typename T>std::vector<T>set2vec(std::set<T>const&from){
+  return std::vector<T>(begin(from),end(from));
+}
+template<typename T>std::set<T>vec2set(std::vector<T>const&from){
+  return std::set<T>(begin(from),end(from));
+}
+// note: add more collection conversions here ...
+// ...
 }

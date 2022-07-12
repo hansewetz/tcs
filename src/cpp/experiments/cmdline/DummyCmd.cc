@@ -41,7 +41,7 @@ void DummyCmd::parseCmdlineAux(po::variables_map const&vm){
 }
 // calculate propsals for twmnbm
 void DummyCmd::twmnbmAux(set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
-  if(twmnbmCheckCmdParamDirFile(true,"--dummyFile",baseset,lstcmd,lstopt))return;
-  if(twmnbmCheckCmdParamDirFile(false,"--dummyDir",baseset,lstcmd,lstopt))return;
+  if(twmnbmCheckCmdParamDirFile(true,"dummyFile",baseset,lstcmd,lstopt))return;
+  if(twmnbmCheckCmdParamDirFile(false,"dummyDir",baseset,lstcmd,lstopt))return;
 }
 }

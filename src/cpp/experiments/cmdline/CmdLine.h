@@ -183,7 +183,7 @@ _YYYY_completions()
             # (here we need to analyze and calculate what optikons/file can be selected)
             cmdtail=$(join " " ${COMP_WORDS[@]:2})
 
-            COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${SPACE_AT_END} ${cmdtail}`" -- ${cur})) # NOTE! must pass correct parameter to --twmnbm
+            COMPREPLY=($(compgen -W "`YYYY ${COMP_WORDS[1]} --twmnbm ${SPACE_AT_END} ${cmdtail}`" -- ${cur}))
             ;;
     esac
 }

@@ -49,24 +49,21 @@ vector<string>CmdBase::twmnbm()const{
   // (this is custom code for base class command line parameters)
 
   // handle twmnbm for '--debug'
-// NOTE! should make this better
-//       encapsulate it into a function that can be used for other options that have a fixed set of parameters
-  if(lastcmd()&&lastcmd().value()=="--debug"){                       // if we have '--debug' option ...
-    if(lastopt()==std::nullopt)return {"0","1","2"};                 // if no parameter to '--debug'
-    if(istwmnbm_&&twmnbmSpacesAtEnd_==0)return {lastopt().value()};  // if '--debug 0' with no space after '0' (or 1 or 2)
-  }
+  set<string>retset;
+  if(twmnbmCheckCmdParamStrlist("debug",{"0","1","2"},retset,lastcmd(),lastopt()))return set2vec(retset);
+  
   // if here, last command does not require a parameter
   // remove cmd line parameters from return value that we already have
   set<string>baseset={"--help","--debug","--print","--noexec"};
-  auto retset=subfromargv(baseset,{});
+  auto tmpset=subfromargv(baseset,{});
 
   // let derived class fill in return value
   // (we might get a reduces set form derived class in case derived class determines that)
   // (last cmd requires a parameter)
-  twmnbmAux(retset,lastcmd(),lastopt());
+  twmnbmAux(tmpset,lastcmd(),lastopt());
 
   // return what we have left
-  return vector<string>(begin(retset),end(retset));
+  return set2vec(tmpset);
 }
 // subtract a set of cmd line options from options in argv and return the remaining part
 set<string>CmdBase::subfromargv(set<string>const&baseset1,set<string>const&baseset2)const{
@@ -102,7 +99,6 @@ optional<string>CmdBase::lastopt()const{
 void CmdBase::parseCmdline(){
   // if we have an twmnbm request then do nothing
   if(istwmnbm()){
-// NOTE! not sure if we should have this here
     cout<<tcs::strcat(" ",twmnbm())<<endl;
     exit(0);
   }
@@ -144,15 +140,40 @@ void CmdBase::cmdusage(bool exitwhendone,string const&msg)const{
   tcs::cmdusage(exitwhendone,*desc_,posdesc_,progn_,cmd_,progn_+"-"+cmd_+"(1)");
 }
 // check cmd line parametr for twmnbm
-bool CmdBase::twmnbmCheckCmdParam(string const&cmdparam,string const&defparam,set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
+bool CmdBase::twmnbmCheckCmdParam(string cmdparam,string const&defparam,set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
+  cmdparam="--"s+cmdparam;                             // prepend '--' to cmdopt
   if(!lstcmd||lstcmd.value()!=cmdparam)return false;   // check if last cmd parameter == lstcmd, if not, then return false
   if(!lstopt)baseset={defparam};                       // we now have the lstcmd, if last option is not set, then set 'baseset' to defparam
   return true;                                         // return true sionce we have a match
 }
-// generate file proposal for an argument
-bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string const&cmdparam,
+// check cmd line parametr for twmnbm against a list of numbers
+bool CmdBase::twmnbmCheckCmdParamStrlist(string cmdparam,set<string>const&strlist,set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{
+  cmdparam="--"s+cmdparam;                             // prepend '--' to cmdopt
+  if(!lstcmd||lstcmd.value()!=cmdparam)return false;   // check if last cmd parameter == lstcmd, if not, then return false
+
+  // if last option == null, then suggest strings from 'strlist'
+  if(lastopt()==std::nullopt){
+    baseset=strlist;
+    return true;
+  }
+  // if last option is not null and we have a space, then we are done
+  if(istwmnbm_&&twmnbmSpacesAtEnd_>0){
+    return false;
+  }
+  // if we have an exact match then suggest the match
+  if(strlist.count(lastopt().value())){
+    baseset={lastopt().value()};
+    return true;
+  }
+  // suggest 'strlist'
+  baseset=strlist;
+  return true;
+}
+// generate file or directory proposal for an argument
+bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string cmdparam,
                                       set<string>&baseset,optional<string>const&lstcmd,
                                       optional<string>const&lstopt)const{
+  cmdparam="--"s+cmdparam;
 
   // if last cmd line option is not 'cmdparam' then add it to proposed options
   if(!lstcmd||lstcmd.value()!=cmdparam){
@@ -165,8 +186,7 @@ bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string const&cmdparam,
     return true;
   }
   // determine directory from which to generate suggested file names
-  fs::path basedir="./";        // if we don't have an option to '--dummy' then directory for suggested files is current directory
-  fs::path userpath;
+  fs::path basedir;        // if we don't have an option to '--dummy' then directory for suggested files is current directory
   if(lstopt){
     // get user specified path and what filesystem determines to be the filename (could be a dircetory)
     basedir=lstopt.value();
@@ -178,6 +198,12 @@ bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string const&cmdparam,
     if(!(fname=="."||fname==".."||fs::is_directory(basedir,ec))){
       basedir.remove_filename();
     }
+  }
+  // check if we sould add a leading '.' in case basedir is empty - we must list directory
+  int n2strip=0;
+  if(basedir==""){
+    basedir="./";
+    n2strip=2;
   }
   // check that 'basedir' is actually a directory
   std::error_code ec_isdir;
@@ -193,12 +219,19 @@ bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string const&cmdparam,
     auto pentry=entry.path();
 
     // check if we have a directory
-    if(isfile&&fs::is_directory(pentry,ec_isdir)&&!ec_isdir){
+    if(isfile&&fs::is_directory(pentry,ec_isdir)){
       pentry+="/*";   // mark that we don't want to expand this directory as teh final result
     }
+    // if we expect a directory we can skip files
+    if(!isfile&&!fs::is_directory(pentry,ec_isdir)){
+      continue;
+    }
+    // strip leading '.' if we added it previously
+    string sp=pentry.string();
+    pentry=sp.substr(n2strip);      
+
     // filter entries on full or partial filename (option to 'cmdparam')
     // (not actually needed since; 'compgen' will do this for us)
-
     baseset.insert(pentry.string());
   }
   return true;
