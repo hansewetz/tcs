@@ -6,6 +6,7 @@ artefacts/setenv.sh
 artefacts/bin/*
 artefactslibin/*
 src/cpp/experiments/*/test1
+src/cpp/experiments/*/test4
 junk
 src/cpp/experiments/cmdline/test1-completion.bash
 src/cpp/experiments/cmdline/test1-completion

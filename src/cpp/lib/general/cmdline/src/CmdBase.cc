@@ -212,6 +212,12 @@ bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string cmdparam,
   }
   // generate files in 'basedir' directory
   baseset.clear();
+
+  // we should also list '.' if basedir == './'
+  if(basedir=="./"||basedir=="."){
+    baseset.insert("./");
+  }
+  // list all files/dirs under 'basedir'
   std::error_code dir_ec;
   auto diriterator=fs::directory_iterator(basedir,dir_ec);
   if(dir_ec)return false;               // we migh have been dealing with a basdir that is syntactically correct but doe snot match anything in the file system
@@ -220,7 +226,7 @@ bool CmdBase::twmnbmCheckCmdParamDirFile(bool isfile,string cmdparam,
 
     // check if we have a directory
     if(isfile&&fs::is_directory(pentry,ec_isdir)){
-      pentry+="/*";   // mark that we don't want to expand this directory as teh final result
+      pentry+="/*";   // mark that we don't want to expand this directory as the final result
     }
     // if we expect a directory we can skip files
     if(!isfile&&!fs::is_directory(pentry,ec_isdir)){
