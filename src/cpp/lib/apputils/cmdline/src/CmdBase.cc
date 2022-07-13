@@ -1,5 +1,5 @@
-#include "general/cmdline/CmdBase.h"
-#include "general/cmdline/CmdHelper.h"
+#include "apputils/cmdline/CmdBase.h"
+#include "apputils/cmdline/CmdHelper.h"
 #include "general/utils/strutils.h"
 #include "general/utils/utils.h"
 #include "general/utils/typeutils.h"

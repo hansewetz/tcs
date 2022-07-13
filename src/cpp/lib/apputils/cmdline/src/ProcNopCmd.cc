@@ -1,5 +1,5 @@
-#include "general/cmdline/ProcNopCmd.h"
-#include "general/cmdline/NopCmd.h"
+#include "apputils/cmdline/ProcNopCmd.h"
+#include "apputils/cmdline/NopCmd.h"
 #include <iostream>
 using namespace std;
 namespace tcs{

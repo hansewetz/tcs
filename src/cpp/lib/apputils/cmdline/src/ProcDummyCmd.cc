@@ -1,5 +1,5 @@
-#include "general/cmdline/ProcDummyCmd.h"
-#include "general/cmdline/DummyCmd.h"
+#include "apputils/cmdline/ProcDummyCmd.h"
+#include "apputils/cmdline/DummyCmd.h"
 #include <iostream>
 using namespace std;
 namespace tcs{

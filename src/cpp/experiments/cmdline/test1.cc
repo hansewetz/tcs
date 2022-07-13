@@ -1,11 +1,11 @@
 #include "TestCmd.h"     
 #include "ProcTestCmd.h"      
 
-#include "general/cmdline/CmdLine.h"       // main cmndline class
-#include "general/cmdline/NopCmd.h"        // cmdline args
-#include "general/cmdline/DummyCmd.h"      // ...
-#include "general/cmdline/ProcNopCmd.h"    // cmdline processors
-#include "general/cmdline/ProcDummyCmd.h"  // ...
+#include "apputils/cmdline/CmdLine.h"       // main cmndline class
+#include "apputils/cmdline/NopCmd.h"        // cmdline args
+#include "apputils/cmdline/DummyCmd.h"      // ...
+#include "apputils/cmdline/ProcNopCmd.h"    // cmdline processors
+#include "apputils/cmdline/ProcDummyCmd.h"  // ...
 
 using namespace std;
 using namespace tcs;

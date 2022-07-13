@@ -26,7 +26,7 @@ export GCC_USE_GLIBCXX11_ABI=""
 export GCC_OPT="-Ofast -march=native"
 
 # boost
-export BOOST_INC=${BOOST_ROOT}/boost_1_78_0             
+export BOOST_INC=${BOOST_ROOT}/
 export BOOST_LIB=${BOOST_ROOT}/stage/lib   
 
 # amend paths

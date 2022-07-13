@@ -1,5 +1,5 @@
 #pragma once
-#include "general/cmdline/CmdBase.h"
+#include "apputils/cmdline/CmdBase.h"
 #include <boost/program_options.hpp>
 #include <string>
 #include <iosfwd>
