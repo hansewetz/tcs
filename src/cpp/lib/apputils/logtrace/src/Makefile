@@ -1,7 +1,7 @@
 # To be built
 LOCAL_TARGET    =
 LOCAL_SOTARGET  = $(TCS_LIBDIR)/liblogtrace.so
-LOCAL_OBJS      = 
+LOCAL_OBJS      = Logger.o
 
 # Control.
 LOCAL_LIBS      = 

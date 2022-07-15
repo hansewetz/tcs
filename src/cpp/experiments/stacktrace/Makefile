@@ -4,7 +4,9 @@ LOCAL_SOTARGET  =
 LOCAL_OBJS      = test1.o
 
 # Control.
-LOCAL_LIBS      = -lutils -ldl
+LOCAL_LIBS      = -llogtrace \
+	          -lboost_log -lboost_iostreams -lboost_thread \
+	          -lpthread -lutils -ldl
 LOCAL_LIBPATH   = -L$(TCS_LIBDIR)
 LOCAL_INCPATH   = 
 LOCAL_DEFINES   = 
