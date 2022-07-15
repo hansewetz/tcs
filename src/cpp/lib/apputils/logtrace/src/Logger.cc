@@ -20,6 +20,12 @@
 using namespace std;
 namespace tcs{
 
+// debug print of logger
+ostream&operator<<(ostream&os,Logger const&l){
+  // NOTE!
+  return os;
+}
+
 // helper methods
 namespace{
 
@@ -69,11 +75,20 @@ auto setupSink(boost::shared_ptr<boost::log::core>core,ostream&os,bool iserror,s
   return ret_sink;
 }
 }
-// simple ctor
-Logger::Logger():Logger(""s,Logger::AppLogLevel::NORMAL){
+// no logging
+Logger::Logger():
+    Logger(""s,AppLogLevel::NORMAL,false,nullptr,nullptr,std::nullopt,std::nullopt){
+}
+// stdlog
+Logger::Logger(Logger::STDLOG):
+    Logger(""s,AppLogLevel::NORMAL,true,nullptr,nullptr,std::nullopt,std::nullopt){
+}
+// no logging
+Logger::Logger(string const&logheader,AppLogLevel level):
+    Logger(logheader,level,false,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // initialize boost logging with errors and non-errors going stderr
-Logger::Logger(string const&logheader,Logger::AppLogLevel level):
+Logger::Logger(string const&logheader,Logger::AppLogLevel level,Logger::STDLOG):
     Logger(logheader,level,true,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // use specific ostreams
@@ -92,30 +107,73 @@ Logger::Logger(string const&logheader,AppLogLevel level,
     logheader_(logheader),level_(level),
     log2std_(log2std),
     osout_(osout),oserr_(oserr),
-    outpath_(outpath),errpath_(errpath){
-
-  // get hold of log core
-  auto core=boost::log::core::get();
+    outpath_(outpath),errpath_(errpath),
+    core_(boost::log::core::get()){
 
   // check if we log to std streams
   if(log2std_){
-    core->add_sink(setupSink(core,cout,false,logheader_,level));
-    core->add_sink(setupSink(core,cerr,true,logheader_,level));
+    activateStdlogAux();
   }
   // check if we have files names
-  if(outpath_){
+  activatePathlogAux(outpath_,errpath_);
+
+  // check if we have user specific output streams
+  activateStreamlogAux(osout,oserr);
+}
+// modify logging
+// (will add logging options unless the type of logging is already active)
+bool Logger::activateStdlog(){
+  if(log2std_)return false;
+  return activateStdlogAux();
+}
+bool Logger::activatePathlog(std::filesystem::path const&outpath,std::filesystem::path const&errpath){
+  if(outpath_||errpath_)return false;
+  return activatePathlogAux(outpath,errpath);
+}
+bool Logger::activateStreamlog(std::ostream&osout,std::ostream&oserr){
+  if(osout_||oserr_)return false;
+  return activateStreamlogAux(&osout,&oserr);
+}
+// Aux functions blindly actvates if parameters allow it - it's up to caller to make sure activation should occur
+bool Logger::activateStdlogAux(){
+  core_->add_sink(setupSink(core_,cout,false,logheader_,level_));
+  core_->add_sink(setupSink(core_,cerr,true,logheader_,level_));
+  log2std_=true;
+  return true;
+}
+bool Logger::activatePathlogAux(optional<filesystem::path>const&outpath,optional<filesystem::path>const&errpath){
+  bool ret=false;
+
+  // non-errors
+  if(outpath){
+    outpath_=outpath;
     osoutpath_=ofstream(outpath_.value().string());
     if(!osoutpath_.value())throw runtime_error("initLogging: failed opening file: "s+outpath_.value().string());
-    core->add_sink(setupSink(core,osoutpath_.value(),false,logheader_,level));
+    core_->add_sink(setupSink(core_,osoutpath_.value(),false,logheader_,level_));
+    ret=true;
   }
-  if(errpath_){
+  // errors
+  if(errpath){
+    errpath_=errpath;
     oserrpath_=ofstream(errpath_.value().string());
     if(!oserrpath_.value())throw runtime_error("initLogging: failed opening file: "s+errpath_.value().string());
-    core->add_sink(setupSink(core,oserrpath_.value(),true,logheader_,level));
+    core_->add_sink(setupSink(core_,oserrpath_.value(),true,logheader_,level_));
+    ret=true;
   }
-  // check if we have user specific output streams
-  if(osout)core->add_sink(setupSink(core,*osout,false,logheader_,level));
-  if(oserr)core->add_sink(setupSink(core,*oserr,true,logheader_,level));
-
+  return ret;
+}
+bool Logger::activateStreamlogAux(ostream*osout,ostream*oserr){
+  bool ret=false;
+  if(osout){
+    core_->add_sink(setupSink(core_,*osout,false,logheader_,level_));
+    osout_=osout;
+    ret=true;
+  }
+  if(oserr){
+    core_->add_sink(setupSink(core_,*oserr,true,logheader_,level_));
+    oserr_=oserr;
+    ret=true;
+  }
+  return ret;
 }
 }

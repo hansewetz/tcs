@@ -14,8 +14,12 @@ using namespace tcs;
 //struct str_error:virtual boost::exception,virtual std::exception { }; //(2)
 
 int main(){
-  Logger logger1;
-  Logger logger2("test-app",Logger::AppLogLevel::TRACE,"junk.stdout","junk.stderr");
+  //Logger logger1("test-app1",Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
+  //Logger logger3("test-3",Logger::AppLogLevel::NORMAL);
+  //logger3.activateStdlog();
+  //logger3.activatePathlog("junk3.stdout","junk3.stderr");
+  //Logger logger4("test-app1",Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
+  Logger l("test-app1",Logger::AppLogLevel::TRACE,Logger::STDLOG{});
 
   BOOST_LOG_TRIVIAL(error)<<"Error log message ...";
   BOOST_LOG_TRIVIAL(info)<<"Info log message ...";
