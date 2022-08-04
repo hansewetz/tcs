@@ -1,3 +1,4 @@
+#include "apputils/logtrace/LogHeader.h"
 #include "apputils/logtrace/Logger.h"
 
 #include <boost/log/trivial.hpp>
@@ -14,15 +15,20 @@ using namespace tcs;
 //struct str_error:virtual boost::exception,virtual std::exception { }; //(2)
 
 int main(){
-  //Logger logger1("test-app1",Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
-  //Logger logger3("test-3",Logger::AppLogLevel::NORMAL);
-  //logger3.activateStdlog();
-  //logger3.activatePathlog("junk3.stdout","junk3.stderr");
-  //Logger logger4("test-app1",Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
-  Logger l("test-app1",Logger::AppLogLevel::TRACE,Logger::STDLOG{});
-
-  BOOST_LOG_TRIVIAL(error)<<"Error log message ...";
-  BOOST_LOG_TRIVIAL(info)<<"Info log message ...";
+  // setup log header string + define a few loggers
+  LogHeader::instance().setlogheader("test-app");
+  //Logger logger1(Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
+  //Logger logger3(Logger::AppLogLevel::TRACE,Logger::STDLOG);
+  
+  Logger logger1(Logger::AppLogLevel::TRACE);
+  logger1.activateStdlog();
+  { 
+    Logger logger2(Logger::STDLOG);
+    BOOST_LOG_TRIVIAL(error)<<"logger: error message ...";
+  }
+  BOOST_LOG_TRIVIAL(error)<<"logger1: error message ...";
+  BOOST_LOG_TRIVIAL(info)<<"logger1: info message ...";
+  BOOST_LOG_TRIVIAL(debug)<<"logger1: Debug log message ...";
   try{
     //throw str_error()<<my_info("Hello");
     //cerr<<boost::stacktrace::stacktrace();

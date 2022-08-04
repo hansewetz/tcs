@@ -1,4 +1,5 @@
 #include "apputils/logtrace/Logger.h"
+#include "apputils/logtrace/LogHeader.h"
 #include <boost/log/trivial.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/utility/setup/file.hpp>
@@ -14,32 +15,33 @@
 #include <iostream>
 #include <fstream>
 
-// NOTE!
-// we should make Logger is a singleton ... or that we never declare more than one object of this type
-
 using namespace std;
 namespace tcs{
 
 // debug print of logger
 ostream&operator<<(ostream&os,Logger const&l){
-  // NOTE!
+  os<<"outpath: "<<(l.outpath_?l.outpath_.value().string():"<nullopt>"s)<<", ";
+  os<<"errpath: "<<(l.errpath_?l.errpath_.value().string():"<nullopt>"s)<<", ";
+  os<<"osout: "<<(l.osout_?"<stream>"s:"<null>"s)<<", ";
+  os<<"oserr: "<<(l.oserr_?"<stream>"s:"<null>"s)<<", ";
+  os<<"log2std: "<<boolalpha<<l.log2std_;
   return os;
 }
-
 // helper methods
 namespace{
 
 // setup a boost sink and attach an output stream based on log level
-auto setupSink(boost::shared_ptr<boost::log::core>core,ostream&os,bool iserror,string const&logheader,Logger::AppLogLevel level){
-  // sink to return
-  typedef boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend> sink_t;
-  boost::shared_ptr<sink_t>ret_sink;
+[[nodiscard]]auto setupSink(bool nulllog,boost::shared_ptr<boost::log::core>core,ostream&os,bool iserror,Logger::AppLogLevel level){
+  // boost log sink
+  Logger::sink_ptr_t ret_sink;
 
   // create sink and setup filter on sink
   boost::shared_ptr<boost::log::sinks::text_ostream_backend>backend=boost::make_shared<boost::log::sinks::text_ostream_backend>();
-  backend->add_stream(boost::shared_ptr<ostream>(&os,boost::null_deleter()));
+  if(!nulllog){
+    backend->add_stream(boost::shared_ptr<ostream>(&os,boost::null_deleter()));
+  }
   backend->auto_flush(true);                        // enable auto-flushing after each log record written
-  ret_sink=boost::make_shared<sink_t>(backend);     // (the backend requires synchronization in the frontend)
+  ret_sink=boost::make_shared<Logger::sink_t>(backend);     // (the backend requires synchronization in the frontend)
 
   // only display error type messages on this sink
   if(iserror){
@@ -65,6 +67,7 @@ auto setupSink(boost::shared_ptr<boost::log::core>core,ostream&os,bool iserror,s
   core->add_global_attribute("ThreadID",boost::log::attributes::current_thread_id());
 
   // setup log format
+  auto const&logheader=LogHeader::instance().getlogheader();
   ret_sink->set_formatter(
       boost::log::expressions::format("["s+logheader+"]"+"[%1%] [%2%] [%3%] %4%")%
       boost::log::expressions::attr<boost::posix_time::ptime>("TimeStamp")%
@@ -77,39 +80,43 @@ auto setupSink(boost::shared_ptr<boost::log::core>core,ostream&os,bool iserror,s
 }
 // no logging
 Logger::Logger():
-    Logger(""s,AppLogLevel::NORMAL,false,nullptr,nullptr,std::nullopt,std::nullopt){
+    Logger(AppLogLevel::NORMAL,false,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // stdlog
-Logger::Logger(Logger::STDLOG):
-    Logger(""s,AppLogLevel::NORMAL,true,nullptr,nullptr,std::nullopt,std::nullopt){
+Logger::Logger(Logger::STDLOG_):
+    Logger(AppLogLevel::NORMAL,true,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // no logging
-Logger::Logger(string const&logheader,AppLogLevel level):
-    Logger(logheader,level,false,nullptr,nullptr,std::nullopt,std::nullopt){
+Logger::Logger(AppLogLevel level):
+    Logger(level,false,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // initialize boost logging with errors and non-errors going stderr
-Logger::Logger(string const&logheader,Logger::AppLogLevel level,Logger::STDLOG):
-    Logger(logheader,level,true,nullptr,nullptr,std::nullopt,std::nullopt){
+Logger::Logger(Logger::AppLogLevel level,Logger::STDLOG_):
+    Logger(level,true,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // use specific ostreams
-Logger::Logger(string const&logheader,Logger::AppLogLevel level,ostream&osout,ostream&oserr):
-    Logger(logheader,level,false,&osout,&oserr,std::nullopt,std::nullopt){
+Logger::Logger(Logger::AppLogLevel level,ostream&osout,ostream&oserr):
+    Logger(level,false,&osout,&oserr,std::nullopt,std::nullopt){
 }
 // use filenames for err and non-err messages
-Logger::Logger(string const&logheader,Logger::AppLogLevel level,filesystem::path const&outpath,filesystem::path const&errpath):
-    Logger(logheader,level,false,nullptr,nullptr,outpath,errpath){
+Logger::Logger(Logger::AppLogLevel level,filesystem::path const&outpath,filesystem::path const&errpath):
+    Logger(level,false,nullptr,nullptr,outpath,errpath){
 }
-Logger::Logger(string const&logheader,AppLogLevel level,
+Logger::Logger(AppLogLevel level,
          bool log2std,
          ostream*osout,ostream*oserr,
          optional<filesystem::path>const&outpath,
          optional<filesystem::path>const&errpath):
-    logheader_(logheader),level_(level),
+    level_(level),
     log2std_(log2std),
     osout_(osout),oserr_(oserr),
     outpath_(outpath),errpath_(errpath),
     core_(boost::log::core::get()){
 
+  // check if we should have no logging
+  if(!log2std_&&!outpath_&&!errpath_&&!osout&&!oserr){
+    activateNoStdlogAux();
+  }
   // check if we log to std streams
   if(log2std_){
     activateStdlogAux();
@@ -119,6 +126,11 @@ Logger::Logger(string const&logheader,AppLogLevel level,
 
   // check if we have user specific output streams
   activateStreamlogAux(osout,oserr);
+}
+// dtor
+Logger::~Logger(){
+  deactivateStdlog();
+  // NOTE!
 }
 // modify logging
 // (will add logging options unless the type of logging is already active)
@@ -136,8 +148,19 @@ bool Logger::activateStreamlog(std::ostream&osout,std::ostream&oserr){
 }
 // Aux functions blindly actvates if parameters allow it - it's up to caller to make sure activation should occur
 bool Logger::activateStdlogAux(){
-  core_->add_sink(setupSink(core_,cout,false,logheader_,level_));
-  core_->add_sink(setupSink(core_,cerr,true,logheader_,level_));
+  // even if atd sinks are not active, we need to have a sink without ouput or, the output will be generated by default)
+  if(!log2std_){
+    if(stdoutsink_){
+      core_->remove_sink(stdoutsink_);
+      stdoutsink_.reset();
+    }
+    if(stderrsink_){
+      core_->remove_sink(stderrsink_);
+      stderrsink_.reset();
+    }
+  }
+  if(!stdoutsink_)core_->add_sink(stdoutsink_=setupSink(false,core_,cout,false,level_));
+  if(!stderrsink_)core_->add_sink(stderrsink_=setupSink(false,core_,cerr,true,level_));
   log2std_=true;
   return true;
 }
@@ -149,7 +172,7 @@ bool Logger::activatePathlogAux(optional<filesystem::path>const&outpath,optional
     outpath_=outpath;
     osoutpath_=ofstream(outpath_.value().string());
     if(!osoutpath_.value())throw runtime_error("initLogging: failed opening file: "s+outpath_.value().string());
-    core_->add_sink(setupSink(core_,osoutpath_.value(),false,logheader_,level_));
+    if(pathoutsink_)core_->add_sink(pathoutsink_=setupSink(false,core_,osoutpath_.value(),false,level_));
     ret=true;
   }
   // errors
@@ -157,7 +180,7 @@ bool Logger::activatePathlogAux(optional<filesystem::path>const&outpath,optional
     errpath_=errpath;
     oserrpath_=ofstream(errpath_.value().string());
     if(!oserrpath_.value())throw runtime_error("initLogging: failed opening file: "s+errpath_.value().string());
-    core_->add_sink(setupSink(core_,oserrpath_.value(),true,logheader_,level_));
+    if(!patherrsink_)core_->add_sink(patherrsink_=setupSink(false,core_,oserrpath_.value(),true,level_));
     ret=true;
   }
   return ret;
@@ -165,15 +188,48 @@ bool Logger::activatePathlogAux(optional<filesystem::path>const&outpath,optional
 bool Logger::activateStreamlogAux(ostream*osout,ostream*oserr){
   bool ret=false;
   if(osout){
-    core_->add_sink(setupSink(core_,*osout,false,logheader_,level_));
+    if(streamoutsink_)core_->add_sink(streamoutsink_=setupSink(false,core_,*osout,false,level_));
     osout_=osout;
     ret=true;
   }
   if(oserr){
-    core_->add_sink(setupSink(core_,*oserr,true,logheader_,level_));
+    if(!streamerrsink_)core_->add_sink(streamerrsink_=setupSink(false,core_,*oserr,true,level_));
     oserr_=oserr;
     ret=true;
   }
   return ret;
+}
+bool Logger::activateNoStdlogAux(){
+  // even if atd sinks are not active, we need to have a sink without ouput or, the output will be generated by default)
+  if(!stdoutsink_)core_->add_sink(stdoutsink_=setupSink(true,core_,cout,false,level_));
+  if(!stderrsink_)core_->add_sink(stderrsink_=setupSink(true,core_,cerr,true,level_));
+  return true;
+}
+// deactivate std logging on a logger
+void Logger::deactivateStdlog(){
+  if(log2std_){
+    core_->remove_sink(stdoutsink_);
+    stdoutsink_.reset();
+    core_->remove_sink(stderrsink_);
+    stderrsink_.reset();
+  }
+  // dactivate std logger (not eneough to remove sinks)
+  activateNoStdlogAux();
+}
+// convert level to a string
+string Logger::level2string(AppLogLevel level){
+  switch(level){
+    case AppLogLevel::TRACE:
+      return "TRACE";
+    case AppLogLevel::DEBUG:
+      return "DEBUG";
+    case AppLogLevel::NORMAL:
+      return "NORMAL";
+    default:
+      throw runtime_error("Logger::level2string: invalid level in program: "s+to_string(static_cast<int>(level)));
+  }
+}
+string Logger::level2string()const{
+  return Logger::level2string(level_);
 }
 }
