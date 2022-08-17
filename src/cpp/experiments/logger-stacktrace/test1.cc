@@ -17,18 +17,14 @@ using namespace tcs;
 int main(){
   // setup log header string + define a few loggers
   LogHeader::instance().setlogheader("test-app");
-  //Logger logger1(Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
-  //Logger logger3(Logger::AppLogLevel::TRACE,Logger::STDLOG);
-  
-  Logger logger1(Logger::AppLogLevel::TRACE);
-  logger1.activateStdlog();
-  { 
-    Logger logger2(Logger::STDLOG);
-    BOOST_LOG_TRIVIAL(error)<<"logger: error message ...";
-  }
-  BOOST_LOG_TRIVIAL(error)<<"logger1: error message ...";
-  BOOST_LOG_TRIVIAL(info)<<"logger1: info message ...";
-  BOOST_LOG_TRIVIAL(debug)<<"logger1: Debug log message ...";
+
+  // setup logging on file + stdxxx
+  Logger logger1(Logger::AppLogLevel::TRACE,"junk1.stdout","junk1.stderr");
+  //Logger logger2(Logger::AppLogLevel::TRACE,Logger::STDLOG);
+ 
+  BOOST_LOG_TRIVIAL(error)<<"logger1: error message outside scope ...";
+  BOOST_LOG_TRIVIAL(info)<<"logger1: info message  outside scope...";
+  BOOST_LOG_TRIVIAL(debug)<<"logger1: Debug log message  outside scope...";
   try{
     //throw str_error()<<my_info("Hello");
     //cerr<<boost::stacktrace::stacktrace();

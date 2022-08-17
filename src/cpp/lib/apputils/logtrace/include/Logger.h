@@ -19,7 +19,7 @@ public:
   friend std::ostream&operator<<(std::ostream&os,Logger const&l);
 
   // log levels
-  enum class AppLogLevel{TRACE=0,DEBUG=1,NORMAL=2};
+  enum class AppLogLevel{TRACE=0,DEBUG=1,INFO=2};
 
   // tag used to indicate stdlog
   static constexpr struct STDLOG_{}STDLOG{};
@@ -49,7 +49,9 @@ public:
 
   // deactivate logging parameter
   void deactivateStdlog();
-  // NOTE! not yet done
+  void deactivatePathlog();
+  void deactivateStreamlog();
+  void deactivate();
 
   // utility methods
   static std::string level2string(AppLogLevel level);
@@ -70,7 +72,7 @@ private:
   bool activateNoStdlogAux();
 
   // some private attr
-  AppLogLevel level_=AppLogLevel::NORMAL;
+  AppLogLevel level_=AppLogLevel::INFO;
 
   // logfiles if we log to files
   std::optional<std::filesystem::path>outpath_=std::nullopt;

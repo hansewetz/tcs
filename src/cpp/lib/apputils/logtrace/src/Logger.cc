@@ -48,18 +48,15 @@ namespace{
     ret_sink->set_filter(boost::log::trivial::severity>boost::log::trivial::warning);
   }else{
     if(level==Logger::AppLogLevel::TRACE){
-      ret_sink->set_filter(
-          boost::log::trivial::severity>=boost::log::trivial::trace&&
-          boost::log::trivial::severity<=boost::log::trivial::warning);
+      ret_sink->set_filter(boost::log::trivial::severity>=boost::log::trivial::trace&&
+                           boost::log::trivial::severity<=boost::log::trivial::warning);
     }else
     if(level==Logger::AppLogLevel::DEBUG){
-      ret_sink->set_filter(
-          boost::log::trivial::severity>=boost::log::trivial::debug&&
-          boost::log::trivial::severity<=boost::log::trivial::warning);
+      ret_sink->set_filter(boost::log::trivial::severity>=boost::log::trivial::debug&&
+                           boost::log::trivial::severity<=boost::log::trivial::warning);
     }else{
-      ret_sink->set_filter(
-        boost::log::trivial::severity>=boost::log::trivial::info&&
-        boost::log::trivial::severity<=boost::log::trivial::warning);
+      ret_sink->set_filter(boost::log::trivial::severity>=boost::log::trivial::info&&
+                           boost::log::trivial::severity<=boost::log::trivial::warning);
     }
   }
   // add some formatting stuff to core
@@ -80,11 +77,11 @@ namespace{
 }
 // no logging
 Logger::Logger():
-    Logger(AppLogLevel::NORMAL,false,nullptr,nullptr,std::nullopt,std::nullopt){
+    Logger(AppLogLevel::INFO,false,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // stdlog
 Logger::Logger(Logger::STDLOG_):
-    Logger(AppLogLevel::NORMAL,true,nullptr,nullptr,std::nullopt,std::nullopt){
+    Logger(AppLogLevel::INFO,true,nullptr,nullptr,std::nullopt,std::nullopt){
 }
 // no logging
 Logger::Logger(AppLogLevel level):
@@ -129,8 +126,7 @@ Logger::Logger(AppLogLevel level,
 }
 // dtor
 Logger::~Logger(){
-  deactivateStdlog();
-  // NOTE!
+  deactivate();
 }
 // modify logging
 // (will add logging options unless the type of logging is already active)
@@ -172,7 +168,7 @@ bool Logger::activatePathlogAux(optional<filesystem::path>const&outpath,optional
     outpath_=outpath;
     osoutpath_=ofstream(outpath_.value().string());
     if(!osoutpath_.value())throw runtime_error("initLogging: failed opening file: "s+outpath_.value().string());
-    if(pathoutsink_)core_->add_sink(pathoutsink_=setupSink(false,core_,osoutpath_.value(),false,level_));
+    if(!pathoutsink_)core_->add_sink(pathoutsink_=setupSink(false,core_,osoutpath_.value(),false,level_));
     ret=true;
   }
   // errors
@@ -216,6 +212,34 @@ void Logger::deactivateStdlog(){
   // dactivate std logger (not eneough to remove sinks)
   activateNoStdlogAux();
 }
+// deactivate stream logging
+void Logger::deactivateStreamlog(){
+  if(streamoutsink_){
+    core_->remove_sink(streamoutsink_);
+    streamoutsink_=nullptr;
+  }
+  if(streamerrsink_){
+    core_->remove_sink(streamerrsink_);
+    streamerrsink_=nullptr;
+  }
+}
+// deactivate path logging
+void Logger::deactivatePathlog(){
+  if(pathoutsink_){
+    core_->remove_sink(pathoutsink_);
+    pathoutsink_=nullptr;
+  }
+  if(patherrsink_){
+    core_->remove_sink(patherrsink_);
+    patherrsink_=nullptr;
+  }
+}
+// dactivate all
+void Logger::deactivate(){
+  deactivateStdlog();
+  deactivatePathlog();
+  deactivateStreamlog();
+}
 // convert level to a string
 string Logger::level2string(AppLogLevel level){
   switch(level){
@@ -223,8 +247,8 @@ string Logger::level2string(AppLogLevel level){
       return "TRACE";
     case AppLogLevel::DEBUG:
       return "DEBUG";
-    case AppLogLevel::NORMAL:
-      return "NORMAL";
+    case AppLogLevel::INFO:
+      return "INFO";
     default:
       throw runtime_error("Logger::level2string: invalid level in program: "s+to_string(static_cast<int>(level)));
   }
