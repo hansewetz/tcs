@@ -36,19 +36,19 @@ private:
   std::size_t line_;
   std::string whatstr_;
 };
-// macro use for throwing a texcept
+// throw 'texcept'
 #define THROW_TEXCEPT(x){\
   std::stringstream strm;\
-  strm<<LogHeader::instance().getlogheader()<<": "<<x;\
+  strm<<"["<<LogHeader::instance().getlogheader()<<"]"<<": "<<x;\
   throw texcept(strm.str(),stacktrace_t(),__FILE__,__LINE__);\
 }
 // print operator
 std::ostream&operator<<(std::ostream&os,std::exception const&e);
 
-// throw runtime_error
+// throw 'runtime_error' 
 #define THROW(x){\
   std::stringstream strm;\
-  strm<<logheader()<<__FILE__":#"<<__LINE__<<": "<<x;\
+  strm<<"["<<LogHeader::instance().getlogheader()<<"]"<<__FILE__":#"<<__LINE__<<": "<<x;\
     std::string s{strm.str()};\
     throw std::runtime_error(s);\
 }

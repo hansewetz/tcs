@@ -12,7 +12,7 @@ LogHeader&LogHeader::instance(){
 }
 // set logheader
 string const&LogHeader::getlogheader()const{
-  if(!logheader_)throw runtime_error("LogHeader::getlogheader: logheader string not set");
+  if(!logheader_)throw runtime_error("LogHeader::getlogheader: logheader string not set - set it as: 'LogHeader::instance().setlogheader(\"test-app\");'");
   return logheader_.value();
 }
 // set log header
