@@ -21,7 +21,7 @@ optional<string>fenv(string const&s,string&err){
 int main(){
   // setup logger
   LogHeader::instance().setlogheader("test-app");
-  Logger logger1(Logger::AppLogLevel::TRACE,Logger::STDLOG);
+  Logger logger1(Logger::AppLogLevel::TRACE);
   logger1.activateStdlog();
   logger1.activatePathlog("junk.stdout","junk.stderr");
   try{
