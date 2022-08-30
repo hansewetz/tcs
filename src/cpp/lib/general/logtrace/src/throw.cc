@@ -1,4 +1,4 @@
-#include "apputils/logtrace/throw.h"
+#include "general/logtrace/throw.h"
 #include <sstream>
 #include <iostream>
 

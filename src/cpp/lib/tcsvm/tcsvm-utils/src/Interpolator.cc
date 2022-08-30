@@ -1,5 +1,5 @@
 #include "tcsvm/tcsvm-utils/Interpolator.h"
-#include "apputils/logtrace/throw.h"
+#include "general/logtrace/throw.h"
 #include <string>
 #include <set>
 #include <sstream>

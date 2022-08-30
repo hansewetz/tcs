@@ -1,5 +1,5 @@
 #include "tcsvm/tcsvm-utils/Interpolator.h"
-#include "apputils/logtrace/logtrace.h"
+#include "general/logtrace/logtrace.h"
 #include "general/sysutils/envutils.h"
 
 #include <boost/log/trivial.hpp>

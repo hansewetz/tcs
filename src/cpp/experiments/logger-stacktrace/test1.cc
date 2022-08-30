@@ -1,4 +1,4 @@
-#include "apputils/logtrace/logtrace.h"
+#include "general/logtrace/logtrace.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/stacktrace.hpp>

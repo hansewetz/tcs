@@ -1,5 +1,5 @@
-#include "apputils/logtrace/Logger.h"
-#include "apputils/logtrace/LogHeader.h"
+#include "general/logtrace/Logger.h"
+#include "general/logtrace/LogHeader.h"
 #include <boost/log/trivial.hpp>
 #include <boost/log/core.hpp>
 #include <boost/log/utility/setup/file.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include "apputils/logtrace/LogHeader.h"
+#include "general/logtrace/LogHeader.h"
 #include "boost/stacktrace.hpp"
 #include <string>
 #include <stdexcept>

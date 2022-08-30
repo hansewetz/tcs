@@ -1,5 +1,5 @@
 #include "general/sysutils/envutils.h"
-#include "apputils/logtrace/throw.h"
+#include "general/logtrace/throw.h"
 #include <stdlib.h>
 using namespace std;
 namespace tcs{
