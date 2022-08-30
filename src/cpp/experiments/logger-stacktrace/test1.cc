@@ -15,6 +15,7 @@ void foo(){
   THROW_TEXCEPT("Hello: "<<17);
 }
 
+// test program
 int main(){
   try{
     // setup log header string + define a few loggers

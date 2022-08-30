@@ -3,6 +3,18 @@
 #include <iostream>
 
 using namespace std;
+
+
+// install print operator for styd::exception in std namespace
+namespace std{
+// print operator
+ostream&operator<<(ostream&os,exception const&e){
+  tcs::texcept const*te=tcs::texcept::e2texcept(e);
+  if(te)return os<<*te;
+  return os<<e.what();
+}
+}
+
 namespace tcs{
 
 // print operator - will print stacktrace also
@@ -29,11 +41,4 @@ char const*texcept::what()const noexcept{return whatstr_.c_str();}
 
 // get a texcept pointer (possibly nullptr) from an exception
 texcept const*texcept::e2texcept(exception const&e){return dynamic_cast<texcept const*>(&e);}
-
-// print operator
-ostream&operator<<(ostream&os,exception const&e){
-  texcept const*te=texcept::e2texcept(e);
-  if(te)return os<<*te;
-  return os<<e.what();
-}
 }

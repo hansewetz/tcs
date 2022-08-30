@@ -4,6 +4,17 @@
 #include <string>
 #include <stdexcept>
 #include <iosfwd>
+#include <sstream>
+
+
+// install print operator for styd::exception in std namespace
+// (we cannot have the operator in 'ef' namespace since we get clashes with boost print operators then)
+namespace std{
+// print operator
+std::ostream&operator<<(std::ostream&os,std::exception const&e);
+}
+
+// open tcs namepace
 namespace tcs{
 
 // type of stack trace
@@ -40,11 +51,8 @@ private:
 #define THROW_TEXCEPT(x){\
   std::stringstream strm;\
   strm<<"["<<LogHeader::instance().getlogheader()<<"]"<<": "<<x;\
-  throw texcept(strm.str(),stacktrace_t(),__FILE__,__LINE__);\
+  throw tcs::texcept(strm.str(),tcs::stacktrace_t(),__FILE__,__LINE__);\
 }
-// print operator
-std::ostream&operator<<(std::ostream&os,std::exception const&e);
-
 // throw 'runtime_error' 
 #define THROW(x){\
   std::stringstream strm;\

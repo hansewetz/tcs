@@ -1,3 +1,3 @@
-SUBDIRS =  general apputils tcsvm
+SUBDIRS =  src
 
 include $(PROJECT_ROOT)/env/makerules/subdirs.rules
