@@ -2,6 +2,7 @@
 #include "general/logtrace/logtrace.h"
 #include "general/sysutils/envutils.h"
 #include "general/sysutils/executils.h"
+#include "general/miscutils/StopWatch.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/stacktrace.hpp>
@@ -47,6 +48,9 @@ int main(){
   logger1.activateStdlog();
   logger1.activatePathlog("junk.stdout","junk.stderr");
   try{
+    // test stopwatch
+    SteadyStopWatch sw;
+    sw.click();
 
     // create interpolator
     vm::Interpolator ip(fenv,fmem,fcmd,nullopt);
@@ -54,7 +58,11 @@ int main(){
     // test interpolator
     string stest="a=%foo";
     string itest=ip.interpolate(stest);
-    cout<<"\""<<stest<<"\" --> \""<<itest<<"\""<<endl;
+    BOOST_LOG_TRIVIAL(info)<<"\""<<stest<<"\" --> \""<<itest<<"\"";
+
+    // get time from stopwatch
+    sw.click();
+    BOOST_LOG_TRIVIAL(info)<<"execution time: "<<sw.getElapsedTimeMs()<<"ms";
   }
   catch(exception const&e){
     BOOST_LOG_TRIVIAL(error)<<"caught exception: "<<e;

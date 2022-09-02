@@ -1,3 +1,3 @@
-SUBDIRS =  utils sysutils logtrace miscutils
+SUBDIRS =  src
 
 include $(PROJECT_ROOT)/env/makerules/subdirs.rules

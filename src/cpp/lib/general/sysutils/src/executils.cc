@@ -16,12 +16,7 @@ namespace tcs{
 // execute a command and capture stdout in a string
 // (if failure, set error in 'err' and return nullopt)
 string shellcmd(string const&cmd){
-  // NOTE! have not gone through this yet ...
-  // ...
-
-  // some calls may throw an exception
-  // (make sure we catch exception and set an error string and return nullopt)
-//  try{
+  // make sure we alwasy throw if an error occurs
   int fdchild;
   int cpid;
   string file="/usr/bin/bash";
@@ -32,7 +27,7 @@ string shellcmd(string const&cmd){
   // read data from pipe ...
   stringstream str;
   char c;
-  while(eread(fdchild,&c,1)==1)str<<c;    // NOTE! should handle error here
+  while(eread(fdchild,&c,1)==1)str<<c;
   eclose(fdchild);
 
   // wait for child and get exit status code
@@ -50,13 +45,6 @@ string shellcmd(string const&cmd){
 }
 // spawn child process setting up stdout and stdin as a pipe
 void spawnCaptureStdinout(string const&file,vector<string>args,int&fdchild,int&cpid,bool diewhenparentdies){
-
-// NOTE! have not gone through this yet ...
-// ...
-
-// NOTE! make sure we either have an exxx(...) or check all system call return values
-// ...
-
   // create pipe between child and parent
   int fds[2];   // fds[0]: parent, fds[1]: child
   int stat=socketpair(AF_LOCAL,SOCK_STREAM,0,fds);
