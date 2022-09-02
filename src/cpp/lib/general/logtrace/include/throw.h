@@ -50,13 +50,13 @@ private:
 // throw 'texcept'
 #define THROW_TEXCEPT(x){\
   std::stringstream strm;\
-  strm<<"["<<LogHeader::instance().getlogheader()<<"]"<<": "<<x;\
+  strm<<"["<<tcs::LogHeader::instance().getlogheader()<<"]"<<": "<<x;\
   throw tcs::texcept(strm.str(),tcs::stacktrace_t(),__FILE__,__LINE__);\
 }
 // throw 'runtime_error' 
 #define THROW(x){\
   std::stringstream strm;\
-  strm<<"["<<LogHeader::instance().getlogheader()<<"]"<<__FILE__":#"<<__LINE__<<": "<<x;\
+  strm<<"["<<tcs::LogHeader::instance().getlogheader()<<"]"<<__FILE__":#"<<__LINE__<<": "<<x;\
     std::string s{strm.str()};\
     throw std::runtime_error(s);\
 }

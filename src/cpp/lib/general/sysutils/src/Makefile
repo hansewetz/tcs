@@ -1,7 +1,7 @@
 # To be built
 LOCAL_TARGET    = 
 LOCAL_SOTARGET  = $(TCS_LIBDIR)/libsysutils.so
-LOCAL_OBJS      = envutils.o
+LOCAL_OBJS      = envutils.o executils.o syswrappers.o fileutils.o
 
 # Control.
 LOCAL_LIBS      = 

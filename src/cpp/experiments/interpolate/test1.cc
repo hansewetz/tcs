@@ -1,6 +1,7 @@
 #include "tcsvm/tcsvm-utils/Interpolator.h"
 #include "general/logtrace/logtrace.h"
 #include "general/sysutils/envutils.h"
+#include "general/sysutils/executils.h"
 
 #include <boost/log/trivial.hpp>
 #include <boost/stacktrace.hpp>
@@ -11,11 +12,32 @@
 using namespace std;
 using namespace tcs;
 
-// interpolator functions
-optional<string>fenv(string const&s,string&err){
-  auto ret=getenvvar(s,err);
+// interpolator functionsDget environment variable
+// (envvar - $xxx or ${xxx})
+string fenv(string const&s){
+  auto ret=getenvvar(s);
   return ret;
 }
+// get memory variable
+// (memvar - %xxx or %{xxx})
+string fmem(string const&s){
+  static map<string,string>mem{
+    {"foo","src"},
+    {"bar","include"}
+  };
+  if(decltype(begin(mem))it;(it=mem.find(s))!=end(mem)){
+    return it->second;
+  }
+  THROW_TEXCEPT("no such memory variable: "<<s);
+}
+// get result of executing a cmd
+// (cmdvar - `xxx`)
+string fcmd(string const&s){
+  return shellcmd(s);
+}
+// get a config variable
+// (cfgvar - *xxx or *{xxx})
+// NOTE! not yet done
 
 // test program
 int main(){
@@ -27,10 +49,10 @@ int main(){
   try{
 
     // create interpolator
-    vm::Interpolator ip(fenv,nullopt,nullopt,nullopt);
+    vm::Interpolator ip(fenv,fmem,fcmd,nullopt);
 
     // test interpolator
-    string stest="a=${HELLO}";
+    string stest="a=%foo";
     string itest=ip.interpolate(stest);
     cout<<"\""<<stest<<"\" --> \""<<itest<<"\""<<endl;
   }
@@ -38,7 +60,3 @@ int main(){
     BOOST_LOG_TRIVIAL(error)<<"caught exception: "<<e;
   }
 }
-
-/*std::optional<flookup_t>const&fenv,std::optional<flookup_t>const&fvar,
-               std::optional<flookup_t>const&fcmd,std::optional<flookup_t>const&fcfg);
-*/
