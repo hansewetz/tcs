@@ -45,7 +45,7 @@ void TestCmd::addCmdlineOptionsAux(po::options_description&desc,po::positional_o
 // check/parse cmd line options
 void TestCmd::parseCmdlineAux(po::variables_map const&vm){
   if(!vm.count("testFile"))cmderr_("missing mandatory 'testFile' cmd line parameter (must be a filename)");
-  if(!vm.count("testDir"))cmderr_("missing mandatory 'testDir' cmd line parameter (must be a dircetory name)");
+  if(!vm.count("testDir"))cmderr_("missing mandatory 'testDir' cmd line parameter (must be a directory name)");
 }
 // calculate propsals for twmnbm
 void TestCmd::twmnbmAux(set<string>&baseset,optional<string>const&lstcmd,optional<string>const&lstopt)const{

@@ -1,3 +1,3 @@
-SUBDIRS =  tcsvm-utils tcsvm-mem
+SUBDIRS =  src
 
 include $(PROJECT_ROOT)/env/makerules/subdirs.rules

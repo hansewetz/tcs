@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <ranges>
 namespace tcs{
 
 // --- make some types streamable 
@@ -36,6 +37,21 @@ template<Streamable S,Streamable T>
   if(p)ret<<p.value();
   return ret.str();
 }
+// merge streamable values from start iterator to end iterator separator in between elements
+template<Streamable S,typename ITSTART,typename ITEND>
+requires requires(S s,ITSTART itstart,ITEND itend,std::ostream&os){
+  os<<s;
+  os<<*itstart;
+  itstart!=itend;
+}
+[[nodiscard]]std::string strcat(S const&sep,ITSTART itstart,ITEND itend){ 
+  std::stringstream ret;
+  for(auto it=itstart;it!=itend;){
+    ret<<*it;
+    if(++it!=itend)ret<<sep;
+  }
+  return ret.str();
+}
 // merge streamable values from a collection with separator in between elements
 // (we don't want to use this function if C<T> is a string, instead we want the 'strcat(S, T, Ts ...)
 template<Streamable S,Streamable T,template<class>class C>
@@ -46,12 +62,15 @@ requires requires(S s,C<T>c,std::ostream&os){
   begin(c)!=end(c);
 }
 [[nodiscard]]std::string strcat(S const&sep,C<T>const&c){
-  std::stringstream ret;
-  for(auto it=begin(c);it!=end(c);){
-    ret<<*it;
-    if(++it!=end(c))ret<<sep;
-  }
-  return ret.str();
+  return strcat(sep,begin(c),end(c));
+}
+// merge streamable values from a ranges view with separator in between elements
+template<Streamable S,std::ranges::view V>
+requires requires(V v,std::ostream&os){
+  os<<*v.begin();
+}
+[[nodiscard]]std::string strcat(S const&sep,V const&v){
+  return strcat(sep,v.begin(),v.end());
 }
 // merge streamable values from a pack into a string with separator between values
 template<Streamable S,Streamable T,Streamable...Ts>
