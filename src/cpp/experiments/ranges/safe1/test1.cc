@@ -9,29 +9,28 @@ using namespace std;
 
 // view class
 template <std::ranges::view View,typename Pred>
-requires std::ranges::input_range<View> &&
-         std::ranges::common_range<View> &&
-         std::is_object_v<Pred> &&
-         std::indirect_unary_predicate<const Pred,std::ranges::iterator_t<View>>
 class my_view : public std::ranges::view_interface<my_view<View,Pred>>{
 public:
   // ctors
-  my_view() = default;
+  my_view()=default;
   my_view(View v,Pred p):subview_(std::move(v)),pred_(std::move(p)){ }
 
-  // iterator forward decl
-  class iterator;
-  friend class iterator;
+  // nested iterator forward decl
+  // (need templated iterator since 'end()' might be a different type than begin - i.e., a sentinel)
+  // (it won't work with views like std::view::iota(...) unless we template on the end() type.
+  // (the end9) type might be a sintinel std::unreachable_sentinel_t like for view::iota for example))
+  template<typename End>class iterator;
 
   // get begin/end iterators
   auto begin() const {return iterator{subview_.begin(),subview_.end(),&pred_};}
-  auto end() const {return iterator{subview_.end(),subview_.end(),&pred_};}
+  auto end() const {return iterator{subview_.end(),&pred_};}
 private:
   View subview_ = View();
   Pred pred_;
 };
 // iterators for view
 template <typename View, typename Pred>
+template<typename End>
 class my_view<View, Pred>::iterator{
 
   using parent_t = std::ranges::iterator_t<View>;
@@ -50,13 +49,15 @@ public:
   constexpr iterator() = default;
 
   // deref operator
-  auto operator *() { return *me_; }
-  auto operator *() const { return *me_; }
+  auto operator *() { return *me_.value(); }
+  auto operator *() const { return *me_.value(); }
 
   // increment iterator
   // (if pred is true, we skip the next item)
   iterator &operator ++() {
-    if(me_!=end_)++me_;
+    if(!me_)return *this;
+    if(me_.value()==end_)return *this;
+    ++me_.value();
     return *this;       
   }
   // increment iterator
@@ -64,17 +65,21 @@ public:
       ++(*this);
   }
   // compare iterators
-  friend bool operator ==(iterator const &a, iterator const &b) {
-      return a.me_ == b.me_;
+  template<typename End1,typename End2>
+  friend bool operator==(iterator<End1> const &a, iterator<End2> const &b) {
+    if(a.me_&&b.me_)return a.me_.value()== b.me_.value();    // we have 2 non-end iterators
+    if(!a.me_&&!b.me_)return true;                           // we have 2 end iterators
+    if(!a.me_)return b.me_.value()==a.end_;                  // b is end iterator
+    return a.me_.value()==b.end_;                            // a is end iterator
   }
 private:
-  parent_t me_;
-  parent_t end_;
-  Pred const *pred_ = nullptr;
+  optional<parent_t>me_;           // if set, then we have an iterator that is not fixed at end()
+  End end_;                        // end of sequence - could be a sentinel
+  Pred const *pred_=nullptr;
 
-  // ctor
-  iterator(parent_t const &me, parent_t end, Pred const *pred):me_(me), end_(std::move(end)), pred_(pred){
-  }
+  // ctors (one for begin() (non-end) and one for end() iterator
+  iterator(parent_t const &me, End  end, Pred const *pred):me_(me), end_(std::move(end)), pred_(pred){}
+  iterator(End  end, Pred const *pred):end_(std::move(end)), pred_(pred){}
 };
 // template deduction
 template <std::ranges::range Range, typename Pred>
@@ -102,11 +107,13 @@ struct my_adaptor {
   auto operator ()(Pred pred) const {
     return closure<Pred>(std::move(pred));
   }
+/* note: do we need this ...?
   // call operator
   template <typename Range, typename Pred>
   auto operator()(Range &&range, Pred &&pred) const {
     return my_view(std::forward(range), std::forward(pred));
   }
+*/
   // pipe operator friend function
   template <typename Range, typename Pred>
   friend auto operator|(Range&& rng, closure<Pred> &&fun) {
@@ -120,10 +127,7 @@ constexpr auto my = my_adaptor{};
 
 // test main program
 int main(){
-  //constexpr string_view str{"George Orwell"};
-  string str{"George Orwell"};
-  //vector<char>str{'a','b','c'};
-  auto res=str|my([](char c){return c<'f';})|views::take(20);
+  auto res=views::iota(1)|my([](auto c)->bool{return true;})|views::take(3)|views::transform([](auto&&val){return val*val;});
 
   for(auto c:res)cout<<c;
   cout<<endl;
