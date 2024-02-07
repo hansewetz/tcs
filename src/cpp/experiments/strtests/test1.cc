@@ -36,9 +36,9 @@ ostream&operator<<(ostream&os,Junk<T>const&junk){
   return os<<junk.i;
 }
 
+
 // test main program
 int main(){
-
   auto t1=make_tuple(1,"hello", 1.7,"again"s);
   auto t2=vector<string>{"1","2"};
   auto t3=list<string>{"goodmorning","goodbuy"};

@@ -19,6 +19,6 @@ private:
   virtual void printAux(std::ostream&os)const override;
   virtual void addCmdlineOptionsAux(po::options_description&desc,po::positional_options_description&posdesc)override;
   virtual void parseCmdlineAux(po::variables_map const&vm)override;
-  void twmnbmAux(std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const override;
+  virtual void twmnbmAux(std::set<std::string>&baseset,std::optional<std::string>const&lstcmd,std::optional<std::string>const&lstopt)const override;
 };
 }
